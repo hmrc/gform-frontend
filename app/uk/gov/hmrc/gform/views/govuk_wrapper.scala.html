@@ -19,7 +19,6 @@
 @import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ BetaBanner, FormTemplate }
 @import uk.gov.hmrc.gform.sharedmodel.{AvailableLanguages, LangADT}
 @import uk.gov.hmrc.gform.views.html.summary.FullMainContent
-@import uk.gov.hmrc.gform.views.html.custom. CustomUserResearchBanner
 @import uk.gov.hmrc.hmrcfrontend.views.html.components.HmrcUserResearchBanner
 @import uk.gov.hmrc.govukfrontend.views.Aliases.ServiceNavigation
 @import uk.gov.hmrc.govukfrontend.views.html.components._
@@ -205,7 +204,6 @@
 @govukTemplate = @{new GovukTemplate(govukHeader, govukFooter, govukSkipLink, fixedWidthPageLayout)}
 @twoThirdsMainContent = @{new TwoThirdsMainContent}
 @fullMainContent = @{new FullMainContent}
-@customHmrcUserResearchBanner = @{new CustomUserResearchBanner()}
 
 @govukLayout = @{new GovukLayout(govukTemplate, govukHeader, govukServiceNavigation, govukFooter, govukBackLink, twoThirdsMainContent, fixedWidthPageLayout)}
 @hmrcReportTechnicalIssue = @{new components.HmrcReportTechnicalIssue()}
@@ -258,7 +256,7 @@
       displayHmrcBanner = displayHMRCLogo,
       phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
       userResearchBanner = None,
-      additionalBannersBlock = userResearchUrl.map(url => customHmrcUserResearchBanner(UserResearchBanner(language, url)))
+      additionalBannersBlock = userResearchUrl.map(url => hmrcUserResearchBanner(UserResearchBanner(language, url)))
     ),
     serviceNavigation = Some(serviceNavigation),
     language = if(messages.lang.code == "cy") Cy else En

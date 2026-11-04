@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.it
 import org.jsoup.Jsoup
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 import uk.gov.hmrc.gform.it.stubs.{ EnvelopeStubs, GFormStubs }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
@@ -38,8 +39,8 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
     val responseBody = Jsoup.parse(newFormResponse.body)
     val form = responseBody.getElementsByClass("hmrc-user-research-banner__container")
 
-    form.text should include("Help make GOV.UK better")
-    form.text should include("You could be given a Love2Shop voucher as a thank you for feedback (opens in new tab)")
+    form.text should include("You may receive a voucher for feedback")
+    form.text should include("Join our research panel (opens in new tab)")
     form.text should include("Hide message Hide message.")
     form.text should include("I do not want to take part in research")
 
@@ -51,19 +52,20 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
   "requesting new form without 'userResearchUrl'" should "not display HMRC User Research Banner" in {
 
     Given("I have a form template without 'userResearchUrl'")
-    gformFormTemplateStub(formTemplateEmailAuthWithoutUserResearchUrl)
-    gformFormTemplateBehaviourStub(formTemplateEmailAuthWithoutUserResearchUrl._id)
+    val formTemplate = formTemplateEmailAuthWithoutUserResearchUrl.copy(
+      _id = FormTemplateId("form-template-without-user-research-url")
+    )
+    gformFormTemplateStub(formTemplate)
+    gformFormTemplateBehaviourStub(formTemplate._id)
 
     When("I request for a new form")
-    val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
+    val newFormResponse = get(s"/submissions/new-form/${formTemplate._id.value}").send()
 
     And("I am redirected to the first page")
     newFormResponse.status shouldBe 200
     val responseBody = Jsoup.parse(newFormResponse.body)
     val form = responseBody.getElementsByClass("hmrc-user-research-banner__container")
 
-    form.text shouldNot include("Help improve HMRC services")
-    form.text shouldNot include("Sign up to take part in user research (opens in new tab)")
-    form.text shouldNot include("No thanks")
+    form.isEmpty shouldBe true
   }
 }
