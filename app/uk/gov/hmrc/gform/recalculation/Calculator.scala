@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.recalculation
 import cats.syntax.all._
 import java.time.LocalDate
 import play.api.i18n.Messages
+import scala.collection.mutable
 import scala.util.Try
 import uk.gov.hmrc.gform.commons.{ BigDecimalUtil, NumberSetScale }
 import uk.gov.hmrc.gform.eval.{ DataRetrieveEval, DateExprEval, ExprType, ExpressionResultWithTypeInfo, StaticTypeData }
@@ -792,7 +793,18 @@ final class RealCalculator(
     evalExpr(expr, staticTypeData, behaviour)
   }
 
-  override def evalExpr(expr: Expr, staticTypeData: StaticTypeData, behaviour: Behaviour): EvaluationStatus =
+  private val evalExprCache =
+    mutable.Map.empty[(Expr, StaticTypeData, Behaviour), EvaluationStatus]
+
+  override def evalExpr(expr: Expr, staticTypeData: StaticTypeData, behaviour: Behaviour): EvaluationStatus = {
+    val cacheKey = (expr, staticTypeData, behaviour)
+    evalExprCache.getOrElseUpdate(
+      cacheKey,
+      evalExprInner(expr, staticTypeData, behaviour)
+    )
+  }
+
+  private def evalExprInner(expr: Expr, staticTypeData: StaticTypeData, behaviour: Behaviour): EvaluationStatus =
     expr match {
       case Add(lhs, rhs) =>
         // When we are outside ATL, but rhs is referenceing ATL we need change behaviour on List producing.

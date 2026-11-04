@@ -1,0 +1,319 @@
+{
+  "_id": "complex-expressions",
+  "version": 1,
+  "formName": "Complex expressions",
+  "description": "Complex expressions",
+  "expressions": {
+    "mgTRLoopMax": "20",
+    "mgTRlossSurrenderedRateWholePeriod": "if mgTRlossSurrenderedAt20perCent then 20 else if mgTRlossSurrenderedAt25perCent then 25 else if mgTRlossSurrenderedAt40perCent then 40 else if mgTRlossSurrenderedAt45perCent then 45 else 50",
+    "mgTRlossSurrenderedRateSecondSplitPeriod": "if mgTRlossSurrenderedAt40perCentSplitPeriod then 40 else 45",
+    "mgTRlossSurrenderedPercentageWholePeriod": "concat(mgTRlossSurrenderedRateWholePeriod,'%')",
+    "mgTRlossSurrenderedPercentageFirstSplitPeriod": "concat(mgTRlossSurrenderedRateWholePeriod,'%')",
+    "mgTRlossSurrenderedPercentageSecondSplitPeriod": "concat(mgTRlossSurrenderedRateSecondSplitPeriod,'%')",
+    "mgTRtaxCreditCalculationFirstSplitPeriod": {
+      "value": "if mgTRlossSurrenderedAt20perCent then mgTRlossSurrenderedFirstSplitPeriod * 0.20 else if mgTRlossSurrenderedAt25perCent then mgTRlossSurrenderedFirstSplitPeriod * 0.25 else if mgTRlossSurrenderedAt40perCent then mgTRlossSurrenderedFirstSplitPeriod * 0.4 else if mgTRlossSurrenderedAt45perCent then mgTRlossSurrenderedFirstSplitPeriod * 0.45 else mgTRlossSurrenderedFirstSplitPeriod * 0.50",
+      "type": "sterling"
+    },
+    "mgTRtaxCreditCalculationWholePeriod": {
+      "value": "if mgTRlossSurrenderedAt20perCent then mgTRlossSurrenderedWholePeriod * 0.20 else if mgTRlossSurrenderedAt25perCent then mgTRlossSurrenderedWholePeriod * 0.25 else if mgTRlossSurrenderedAt40perCent then mgTRlossSurrenderedWholePeriod * 0.4 else if mgTRlossSurrenderedAt45perCent then mgTRlossSurrenderedWholePeriod * 0.45 else mgTRlossSurrenderedWholePeriod * 0.50",
+      "type": "sterling"
+    },
+    "mgTRtaxCreditCalculationSecondSplitPeriod": {
+      "value": "if mgTRlossSurrenderedAt40perCentSplitPeriod then mgTRlossSurrenderedSecondSplitPeriod * 0.4 else mgTRlossSurrenderedSecondSplitPeriod * 0.45 ",
+      "type": "sterling"
+    },
+    "mgTRtaxCreditCalculationSplitPeriodTotal": {
+      "value": "mgTRtaxCreditCalculationFirstSplitPeriod + mgTRtaxCreditCalculationSecondSplitPeriod",
+      "type": "sterling"
+    },
+    "mgTRtaxCreditUncapped": {
+      "value": "if splitPeriod then mgTRtaxCreditCalculationSplitPeriodTotal else mgTRtaxCreditCalculationWholePeriod",
+      "type": "sterling"
+    },
+    "mgTRtaxCredit": {
+      "value": "if mgTRisTouring then if mgTRtaxCreditUncapped > 100000 then 100000 else mgTRtaxCreditUncapped else if mgTRtaxCreditUncapped > 80000 then 80000 else mgTRtaxCreditUncapped",
+      "type": "sterling"
+    },
+    "mgTRtaxCreditTotal": {
+      "value": "mgTRtaxCredit.sum",
+      "type": "sterling"
+    },
+    "email": "auth.email"
+  },
+  "booleanExpressions": {
+    "splitPeriod": "accountingStart before 01042025 && accountingEnd after 31032025",
+    "accountingStartBefore01042025": "accountingStart before 01042025",
+    "accountingStartAfter31032025": "accountingStart after 31032025",
+    "notSplitPeriod": "!splitPeriod",
+    "mgTRisTouring": "mgTRtouringReliefChoice contains 0",
+    "mgTRisNotTouring": "!mgTRisTouring",
+    "mgTRproductionStartBefore27102021": "mgTRpreProductionStartDate before 27102021",
+    "mgTRproductionStartAfter27102021": "!mgTRproductionStartBefore27102021",
+    "mgTRlossSurrenderedAt20perCent": "mgTRisNotTouring && mgTRproductionStartBefore27102021 && accountingStartBefore01042025",
+    "mgTRlossSurrenderedAt25perCent": "mgTRisTouring && mgTRproductionStartBefore27102021 && accountingStartBefore01042025",
+    "mgTRlossSurrenderedAt40perCent": "mgTRisNotTouring && accountingStartAfter31032025",
+    "mgTRlossSurrenderedAt45perCent": "(mgTRisTouring && accountingStartAfter31032025) || (mgTRisNotTouring && mgTRproductionStartAfter27102021 && accountingStartBefore01042025)",
+    "mgTRlossSurrenderedAt40perCentSplitPeriod": "(mgTRlossSurrenderedAt20perCent || mgTRlossSurrenderedAt45perCent) && splitPeriod"
+  },
+  "authConfig": {
+    "authModule": "hmrc"
+  },
+  "displayWidth": "xl",
+  "sections": [
+    {
+      "title": "About the claim",
+      "tasks": [
+        {
+          "title": "Accounting period",
+          "sections": [
+            {
+              "title": "Accounting period start and end date",
+              "fields": [
+                {
+                  "id": "accountingStart",
+                  "label": "Start date of accounting period",
+                  "type": "date",
+                  "notPII": true
+                },
+                {
+                  "id": "accountingEnd",
+                  "label": "End date of accounting period",
+                  "type": "date",
+                  "notPII": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Theatre, Orchestra, Museums and Galleries Exhibition Tax Relief",
+      "tasks": [
+        {
+          "title": "Choose cultural tax reliefs",
+          "sections": [
+            {
+              "title": "Which types of cultural tax relief is business claiming in the accounting period ending ${accountingEnd}?",
+              "fields": [
+                {
+                  "id": "culturalTRprojectType",
+                  "type": "choice",
+                  "multivalue": true,
+                  "choices": [
+                    {
+                      "en": "Museums and Galleries Exhibition Tax Relief",
+                      "value": "mgTR"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Museums and Galleries Exhibition Tax Relief",
+          "sections": [
+            {
+              "title": "How many exhibitions is the company claiming tax relief for?",
+              "fields": [
+                {
+                  "id": "mgTRProductionCount",
+                  "type": "text",
+                  "format": "positiveWholeNumber"
+                }
+              ]
+            },
+            {
+              "type": "addToList",
+              "title": "Museum or gallery exhibitions claiming tax relief",
+              "summaryName": "Museums and Galleries Exhibition Tax Relief - exhibitions added",
+              "summaryDescription": "${mgTRproductionName}",
+              "shortName": "${mgTRproductionName}",
+              "description": "$n. ${mgTRproductionName}",
+              "repeatsUntil": "${mgTRaddAnother.count >= mgTRProductionCount || mgTRaddAnother.count >= mgTRLoopMax}",
+              "repeatsWhile": "${mgTRaddAnother.count < mgTRProductionCount && mgTRaddAnother.count < mgTRLoopMax}",
+              "repeatsWhileError": "You must add details for all the tax relief claims you told us about before continuing",
+              "addAnotherQuestion": {
+                "id": "mgTRaddAnother",
+                "type": "choice",
+                "label": "Do you want to add a tax relief claim for another exhibition?",
+                "labelSize": "s",
+                "format": "yesno"
+              },
+              "pages": [
+                {
+                  "title": "What is the name of the exhibition?",
+                  "fields": [
+                    {
+                      "id": "mgTRproductionName",
+                      "notPII": true,
+                      "type": "text",
+                      "format": "text"
+                    },
+                    {
+                      "id": "mgTRtaxCreditTable",
+                      "type": "text",
+                      "format": "sterling",
+                      "label": "Hidden Field",
+                      "value": "${mgTRtaxCredit orElse 0}",
+                      "presentationHint": "invisibleInSummary",
+                      "submitMode": "summaryinfoonly"
+                    }
+                  ]
+                },
+                {
+                  "title": "What is the production phase start date for ${mgTRproductionName}?",
+                  "fields": [
+                    {
+                      "id": "mgTRpreProductionStartDate",
+                      "notPII": true,
+                      "type": "date",
+                      "format": "before today +1"
+                    }
+                  ]
+                },
+                {
+                  "title": "Did the company claim the touring rate of relief for ${mgTRproductionName}?",
+                  "fields": [
+                    {
+                      "id": "mgTRtouringReliefChoice",
+                      "type": "choice",
+                      "notPII": true,
+                      "format": "yesno"
+                    }
+                  ]
+                },
+                {
+                  "includeIf": "${notSplitPeriod}",
+                  "title": "Amount of loss surrendered at ${mgTRlossSurrenderedPercentageWholePeriod} for the accounting period",
+                  "fields": [
+                    {
+                      "id": "mgTRlossSurrenderedWholePeriod",
+                      "type": "text",
+                      "label": "What is the amount of loss surrendered at ${mgTRlossSurrenderedPercentageWholePeriod} for the accounting period for the exhibition?",
+                      "format": "positiveWholeSterling"
+                    }
+                  ]
+                },
+                {
+                  "includeIf": "${splitPeriod}",
+                  "title": "Amount of loss surrendered during the first part of the accounting period",
+                  "fields": [
+                    {
+                      "id": "mgTRlossSurrenderedFirstSplitPeriod",
+                      "type": "text",
+                      "label": "What is the amount of loss surrendered at ${mgTRlossSurrenderedPercentageFirstSplitPeriod} for the first part of the accounting period for the exhibition?",
+                      "format": "positiveWholeSterling"
+                    }
+                  ]
+                },
+                {
+                  "includeIf": "${splitPeriod}",
+                  "title": "Amount of loss surrendered during the second part of the accounting period",
+                  "fields": [
+                    {
+                      "id": "mgTRlossSurrenderedSecondSplitPeriod",
+                      "type": "text",
+                      "label": "What is the amount of loss surrendered at ${mgTRlossSurrenderedPercentageSecondSplitPeriod} for the second part of the accounting period for the exhibition?",
+                      "format": "positiveWholeSterling"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "title": "Museums and Galleries Exhibition Tax Relief production totals for the accounting period ending ${accountingEnd}",
+              "displayWidth": "xl",
+              "fields": [
+                {
+                  "id": "mgTRcalculationsTable",
+                  "type": "table",
+                  "summaryValue": [
+                    {
+                      "en": "Calculations"
+                    }
+                  ],
+                  "label": "Calculations",
+                  "header": [
+                    {
+                      "en": "Tax credit claim for accounting period",
+                      "classes": "govuk-!-font-size-16 govuk-table__header--numeric"
+                    }
+                  ],
+                  "rows": [
+                    {
+                      "dynamic": "mgTRaddAnother",
+                      "values": [
+                        {
+                          "value": {
+                            "en": "${mgTRtaxCreditTable}"
+                          },
+                          "class": "govuk-!-font-size-16 govuk-table__header--numeric"
+                        }
+                      ]
+                    },
+                    {
+                      "values": [
+                        {
+                          "class": "govuk-!-font-weight-bold govuk-!-text-align-right",
+                          "value": {
+                            "en": "${mgTRtaxCreditTotal}"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "includeIf": "${mgTRProductionCount > mgTRLoopMax}",
+              "title": "Did any of the additional exhibitions claim the touring rate of relief?",
+              "fields": [
+                {
+                  "id": "mgTRAdditionalTouringChoice",
+                  "type": "choice",
+                  "format": "yesno"
+                }
+              ]
+            },
+            {
+              "includeIf": "${mgTRProductionCount > mgTRLoopMax}",
+              "title": "Connected party transactions",
+              "fields": [
+                {
+                  "id": "mgTRAdditionalConnectedPartyChoice",
+                  "type": "choice",
+                  "format": "yesno",
+                  "label": "Has the company made any connected party transactions for the additional exhibitions?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "submitSection": {
+    "label": "Submit your form",
+    "taskLabel": "Check your answers and submit your form"
+  },
+  "summarySection": {
+    "title": "Check your answers before sending your form",
+    "displayWidth": "l",
+    "header": "",
+    "footer": "",
+    "continueLabel": "Accept and submit"
+  },
+  "acknowledgementSection": {
+    "fields": []
+  },
+  "destinations": [
+    {
+      "id": "transitionToSubmitted",
+      "type": "stateTransition",
+      "requiredState": "Submitted"
+    }
+  ]
+}
