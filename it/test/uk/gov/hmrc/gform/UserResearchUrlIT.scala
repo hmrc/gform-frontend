@@ -38,8 +38,8 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
     val responseBody = Jsoup.parse(newFormResponse.body)
     val form = responseBody.getElementsByClass("hmrc-user-research-banner__container")
 
-    form.text should include("Help make GOV.UK better")
-    form.text should include("You could be given a Love2Shop voucher as a thank you for feedback (opens in new tab)")
+    form.text should include("You may receive a voucher for feedback")
+    form.text should include("Join our research panel (opens in new tab)")
     form.text should include("Hide message Hide message.")
     form.text should include("I do not want to take part in research")
 
@@ -55,15 +55,13 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
     gformFormTemplateBehaviourStub(formTemplateEmailAuthWithoutUserResearchUrl._id)
 
     When("I request for a new form")
-    val newFormResponse = get("/submissions/new-form/form-template-with-email-auth").send()
+    val newFormResponse = get(s"/submissions/new-form/${formTemplateEmailAuthWithoutUserResearchUrl._id.value}").send()
 
     And("I am redirected to the first page")
     newFormResponse.status shouldBe 200
     val responseBody = Jsoup.parse(newFormResponse.body)
     val form = responseBody.getElementsByClass("hmrc-user-research-banner__container")
 
-    form.text shouldNot include("Help improve HMRC services")
-    form.text shouldNot include("Sign up to take part in user research (opens in new tab)")
-    form.text shouldNot include("No thanks")
+    form.isEmpty shouldBe true
   }
 }

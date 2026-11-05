@@ -199,6 +199,10 @@ trait FormTemplateSample {
       authConfig = Anonymous
     )
 
-  val formTemplateEmailAuthWithoutUserResearchUrl = formTemplateEmailAuth.copy(userResearchUrl = None)
+  val formTemplateEmailAuthWithoutUserResearchUrl = formTemplateEmailAuth
+    .copy(
+      _id = FormTemplateId("form-template-without-user-research-url"),
+      userResearchUrl = None
+    )
 
 }
