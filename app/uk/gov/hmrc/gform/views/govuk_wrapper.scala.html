@@ -96,8 +96,8 @@
     }
 }
 
-@developmentPhase = @{
-  maybeFormTemplate.flatMap(_.developmentPhase)
+@phaseBanner = @{
+  maybeFormTemplate.flatMap(_.phaseBanner)
 }
 
 @hmrcTimeoutDialog = @{new components.HmrcTimeoutDialog()}
@@ -254,7 +254,7 @@
     headerUrls = HeaderUrls(assetsPath = Assets.at("govuk/images").url, signOutHref = timeoutDialog.flatMap(_.signOutUrl)),
     banners = Banners(
       displayHmrcBanner = displayHMRCLogo,
-      phaseBanner = if(suppressPhaseBanner) None else developmentPhase.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
+      phaseBanner = if(suppressPhaseBanner) None else phaseBanner.getOrElse(BetaBanner).toPhaseBanner(feedbackContent),
       userResearchBanner = None,
       additionalBannersBlock = userResearchUrl.map(url => hmrcUserResearchBanner(UserResearchBanner(language, url)))
     ),
