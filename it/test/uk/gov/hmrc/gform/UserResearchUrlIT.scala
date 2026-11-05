@@ -19,7 +19,6 @@ package uk.gov.hmrc.gform.it
 import org.jsoup.Jsoup
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
 import uk.gov.hmrc.gform.it.stubs.{ EnvelopeStubs, GFormStubs }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.FormTemplateId
 
 class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
 
@@ -52,14 +51,11 @@ class UserResearchUrlIT extends ITSpec with GFormStubs with EnvelopeStubs {
   "requesting new form without 'userResearchUrl'" should "not display HMRC User Research Banner" in {
 
     Given("I have a form template without 'userResearchUrl'")
-    val formTemplate = formTemplateEmailAuthWithoutUserResearchUrl.copy(
-      _id = FormTemplateId("form-template-without-user-research-url")
-    )
-    gformFormTemplateStub(formTemplate)
-    gformFormTemplateBehaviourStub(formTemplate._id)
+    gformFormTemplateStub(formTemplateEmailAuthWithoutUserResearchUrl)
+    gformFormTemplateBehaviourStub(formTemplateEmailAuthWithoutUserResearchUrl._id)
 
     When("I request for a new form")
-    val newFormResponse = get(s"/submissions/new-form/${formTemplate._id.value}").send()
+    val newFormResponse = get(s"/submissions/new-form/${formTemplateEmailAuthWithoutUserResearchUrl._id.value}").send()
 
     And("I am redirected to the first page")
     newFormResponse.status shouldBe 200
