@@ -164,7 +164,7 @@ case class DataRetrieve(
   populateATL: Option[PopulateATL],
   urlFrontend: UrlDescriptor,
   urlBackend: Option[UrlDescriptor],
-  manualFallbackIsDesigned: Boolean = false
+  manualFallbackIsDesigned: Option[Boolean]
 ) {
 
   def prepareRequest(
@@ -422,15 +422,7 @@ object DataRetrieve {
   implicit val format: OFormat[DataRetrieve] = {
     implicit val attrTypeMappingFormat: Format[Map[DataRetrieve.Attribute, DataRetrieve.AttrType]] =
       JsonUtils.formatMap[DataRetrieve.Attribute, DataRetrieve.AttrType](DataRetrieve.Attribute.apply, _.name)
-    val format: OFormat[DataRetrieve] = derived.oformat()
-    OFormat(
-      Reads {
-        case obj: JsObject if !obj.keys.contains("manualFallbackIsDesigned") =>
-          format.reads(obj + ("manualFallbackIsDesigned" -> JsBoolean(false)))
-        case json => format.reads(json)
-      },
-      format
-    )
+    derived.oformat()
   }
 }
 

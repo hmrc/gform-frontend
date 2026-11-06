@@ -232,7 +232,8 @@ class DelegatedAgentAuthConnectorSpec
         urlPath = "/auth/authorise",
         destination = UrlDestination.MDTP
       ),
-      None
+      None,
+      manualFallbackIsDesigned = None
     )
 
     val authPayeDataRetrieve: DataRetrieve = DataRetrieve(
@@ -264,7 +265,8 @@ class DelegatedAgentAuthConnectorSpec
         urlPath = "/auth/authorise",
         destination = UrlDestination.MDTP
       ),
-      None
+      None,
+      manualFallbackIsDesigned = None
     )
 
     val mtdAuthRequest: DataRetrieve.Request = DataRetrieve.Request(

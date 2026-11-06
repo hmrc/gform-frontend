@@ -177,14 +177,14 @@ class ThirdPartyDataSuite extends FunSuite {
   }
 
   test("A saved fallback cannot be replaced by a later successful result") {
-    val failure = getDrResultWithIndex(id = "bankDetails").copy(hasFailed = true)
+    val failure = getDrResultWithIndex(id = "bankDetails", hasFailed = true)
     val original = ThirdPartyData.empty.updateDataRetrieve(List(failure))
     val updated = original.updateDataRetrieve(List(failure.copy(hasFailed = false)))
     assertEquals(updated.dataRetrieve, original.dataRetrieve)
   }
 
   test("Conditional retrieval invalidation preserves fallback but removes successful results") {
-    val failure = getDrResultWithIndex(id = "failed").copy(hasFailed = true)
+    val failure = getDrResultWithIndex(id = "failed", hasFailed = true)
     val success = getDrResultWithIndex(id = "successful")
     val original = ThirdPartyData.empty.updateDataRetrieve(List(failure, success))
     val updated = original.removeDataRetrieves(List(failure.id, success.id))
@@ -192,8 +192,8 @@ class ThirdPartyDataSuite extends FunSuite {
   }
 
   test("Deleting an add-to-list item removes its fallback and keeps other item decisions") {
-    val first = getDrResultWithIndex(Some(1), "agencyInfo").copy(hasFailed = true)
-    val second = getDrResultWithIndex(Some(2), "agencyInfo").copy(hasFailed = true)
+    val first = getDrResultWithIndex(Some(1), "agencyInfo", hasFailed = true)
+    val second = getDrResultWithIndex(Some(2), "agencyInfo", hasFailed = true)
     val thirdPartyData = ThirdPartyData.empty.updateDataRetrieve(List(first, second))
     val updated = thirdPartyData.removeDataRetrieveData(0, Set(first.id))
     assertEquals(updated.dataRetrieve, Some(Map(first.id -> second.copy(id = first.id))))
@@ -281,7 +281,7 @@ class ThirdPartyDataSuite extends FunSuite {
     assertEquals(oldThirdPartyData, newThirdPartyData)
   }
 
-  def getDrResultWithIndex(idx: Option[Int] = None, id: String): DataRetrieveResult = {
+  def getDrResultWithIndex(idx: Option[Int] = None, id: String, hasFailed: Boolean = false): DataRetrieveResult = {
     val dataRetrieveId = idx match {
       case Some(i) => DataRetrieveId(s"${i}_$id")
       case _       => DataRetrieveId(id)
@@ -302,7 +302,8 @@ class ThirdPartyDataSuite extends FunSuite {
       requestParams = Json.obj("accountNumber" -> "86473611", "sortCode" -> "206705"),
       Some(1),
       Some(3),
-      Some(LocalDateTime.of(2025, 10, 14, 17, 25, 0))
+      Some(LocalDateTime.of(2025, 10, 14, 17, 25, 0)),
+      hasFailed = hasFailed
     )
   }
 }

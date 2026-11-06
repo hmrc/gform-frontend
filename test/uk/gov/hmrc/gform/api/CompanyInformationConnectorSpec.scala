@@ -57,16 +57,19 @@ class CompanyInformationConnectorSpec
       stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(notFound()))
 
       companyInformationAsyncConnector
-        .companyProfile(dataRetrieveCompanyHouseProfile.copy(manualFallbackIsDesigned = manualFallback), request)
+        .companyProfile(mkCompanyProfile(Some(manualFallback)), request)
         .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
       companyInformationAsyncConnector
         .companyOfficers(
-          dataRetrieveCompanyHouseActiveOfficers.copy(manualFallbackIsDesigned = manualFallback),
+          mkCompanyOfficers(Some(manualFallback)),
           request
         )
         .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
       companyInformationAsyncConnector
-        .companyInsolvency(dataRetrieveCompanyHouseInsolvency.copy(manualFallbackIsDesigned = manualFallback), request)
+        .companyInsolvency(
+          mkCompanyInsolvency(Some(manualFallback)),
+          request
+        )
         .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
     }
 
@@ -77,17 +80,20 @@ class CompanyInformationConnectorSpec
         )
 
         companyInformationAsyncConnector
-          .companyProfile(dataRetrieveCompanyHouseProfile.copy(manualFallbackIsDesigned = manualFallback), request)
+          .companyProfile(
+            mkCompanyProfile(Some(manualFallback)),
+            request
+          )
           .futureValue shouldBe CannotRetrieveResponse
         companyInformationAsyncConnector
           .companyOfficers(
-            dataRetrieveCompanyHouseActiveOfficers.copy(manualFallbackIsDesigned = manualFallback),
+            mkCompanyOfficers(Some(manualFallback)),
             request
           )
           .futureValue shouldBe CannotRetrieveResponse
         companyInformationAsyncConnector
           .companyInsolvency(
-            dataRetrieveCompanyHouseInsolvency.copy(manualFallbackIsDesigned = manualFallback),
+            mkCompanyInsolvency(Some(manualFallback)),
             request
           )
           .futureValue shouldBe CannotRetrieveResponse
@@ -185,7 +191,11 @@ class CompanyInformationConnectorSpec
   val companyInformationAsyncConnector = new CompanyInformationAsyncConnector(wsHttp, url)
 
   trait TestFixture {
-    val dataRetrieveCompanyHouseProfile = DataRetrieve(
+    val dataRetrieveCompanyHouseProfile = mkCompanyProfile()
+    val dataRetrieveCompanyHouseActiveOfficers = mkCompanyOfficers()
+    val dataRetrieveCompanyHouseInsolvency = mkCompanyInsolvency()
+
+    def mkCompanyProfile(manualFallbackIsDesigned: Option[Boolean] = None): DataRetrieve = DataRetrieve(
       DataRetrieve.Type("companyHouseProfile"),
       DataRetrieveId("someId"),
       Attr.FromObject(
@@ -250,10 +260,11 @@ class CompanyInformationConnectorSpec
           urlPath = "/company/{{companyNumber}}",
           destination = UrlDestination.CompaniesHouse
         )
-      )
+      ),
+      manualFallbackIsDesigned = manualFallbackIsDesigned
     )
 
-    val dataRetrieveCompanyHouseActiveOfficers = DataRetrieve(
+    def mkCompanyOfficers(manualFallbackIsDesigned: Option[Boolean] = None): DataRetrieve = DataRetrieve(
       DataRetrieve.Type("companyHouseActiveOfficers"),
       DataRetrieveId("directors"),
       Attr.FromObject(
@@ -292,10 +303,11 @@ class CompanyInformationConnectorSpec
           urlPath = "/company/{{companyNumber}}/officers",
           destination = UrlDestination.CompaniesHouse
         )
-      )
+      ),
+      manualFallbackIsDesigned = manualFallbackIsDesigned
     )
 
-    val dataRetrieveCompanyHouseInsolvency =
+    def mkCompanyInsolvency(manualFallbackIsDesigned: Option[Boolean] = None): DataRetrieve =
       DataRetrieve(
         DataRetrieve.Type("companyHouseInsolvency"),
         DataRetrieveId("insolvency"),
@@ -388,7 +400,8 @@ class CompanyInformationConnectorSpec
             urlPath = "/company/{{companyNumber}}/insolvency",
             destination = UrlDestination.CompaniesHouse
           )
-        )
+        ),
+        manualFallbackIsDesigned = manualFallbackIsDesigned
       )
 
     val request = DataRetrieve.Request(

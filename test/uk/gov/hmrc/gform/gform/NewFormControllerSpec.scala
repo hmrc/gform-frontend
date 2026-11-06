@@ -140,7 +140,7 @@ class NewFormControllerSpec
       None,
       UrlDescriptor("/agent-details", UrlDestination.GForm),
       None,
-      manualFallbackIsDesigned = true
+      manualFallbackIsDesigned = Some(true)
     )
     val updated = play.api.test.Helpers.await(
       InitFormEvaluator.makeCacheWithDataRetrieve(

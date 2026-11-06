@@ -239,7 +239,8 @@ class GformConnectorSpec extends Spec {
           urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(
@@ -286,7 +287,8 @@ class GformConnectorSpec extends Spec {
           urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(
@@ -324,7 +326,8 @@ class GformConnectorSpec extends Spec {
           urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(

@@ -165,7 +165,7 @@ object DataRetrieveService {
         // We need to fail the journey here, otherwise expressions like
         // ${dataRetrieve.bankDetails.isValid='no'} etc.
         // will always evaluate to false
-        case CannotRetrieveResponse | NotFound if dataRetrieve.manualFallbackIsDesigned =>
+        case CannotRetrieveResponse | NotFound if dataRetrieve.manualFallbackIsDesigned.contains(true) =>
           logger.warn(
             s"Selecting manual fallback for data retrieve '${dataRetrieve.id.value}' (${dataRetrieve.tpe.name})"
           )

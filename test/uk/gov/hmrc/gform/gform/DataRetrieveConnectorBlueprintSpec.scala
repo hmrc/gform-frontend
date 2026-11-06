@@ -59,10 +59,14 @@ class DataRetrieveConnectorBlueprintSpec
   private val bars = new BankAccountReputationAsyncConnector(httpClient, baseUrl)
   private val nino = new NinoInsightsAsyncConnector(httpClient, baseUrl, "test-token")
 
-  private val dataRetrieve = DataRetrieve(
-    tpe = DataRetrieve.Type("test"),
+  private def mkDataRetrieve(
+    tpe: DataRetrieve.Type = DataRetrieve.Type("test"),
+    attributes: Attr = Attr.FromObject(Nil),
+    manualFallbackIsDesigned: Option[Boolean] = None
+  ): DataRetrieve = DataRetrieve(
+    tpe = tpe,
     id = DataRetrieveId("test"),
-    attributes = Attr.FromObject(Nil),
+    attributes = attributes,
     attrTypeMapping = Map.empty,
     params = Nil,
     `if` = None,
@@ -71,8 +75,10 @@ class DataRetrieveConnectorBlueprintSpec
     callOnNoChange = false,
     populateATL = None,
     urlFrontend = UrlDescriptor("/retrieve", UrlDestination.GForm),
-    urlBackend = None
+    urlBackend = None,
+    manualFallbackIsDesigned = manualFallbackIsDesigned
   )
+  private val dataRetrieve = mkDataRetrieve()
   private val request = DataRetrieve.Request(Json.obj(), Nil, None, None, None)
 
   private type Retrieve = DataRetrieve => Future[ServiceCallResponse[DataRetrieve.Response]]
@@ -89,7 +95,7 @@ class DataRetrieveConnectorBlueprintSpec
     List(false, true).foreach { manualFallback =>
       it should s"only allow an intentional not found response with manual fallback $manualFallback" in {
         stubFor(any(urlEqualTo("/retrieve")).willReturn(notFound()))
-        val dr = dataRetrieve.copy(manualFallbackIsDesigned = manualFallback)
+        val dr = mkDataRetrieve(manualFallbackIsDesigned = Some(manualFallback))
 
         retrieve(dr).futureValue shouldBe
           (if (method.contains("empty if not found")) dr.emptyValidResponse() else CannotRetrieveResponse)
@@ -115,7 +121,7 @@ class DataRetrieveConnectorBlueprintSpec
     it should "preserve a successful empty array" in {
       stubFor(any(urlEqualTo("/retrieve")).willReturn(okJson("[]")))
 
-      retrieve(dataRetrieve.copy(attributes = Attr.FromArray(Nil))).futureValue shouldBe
+      retrieve(mkDataRetrieve(attributes = Attr.FromArray(Nil))).futureValue shouldBe
         ServiceResponse(DataRetrieve.Response.Array(Nil))
     }
 
@@ -128,7 +134,7 @@ class DataRetrieveConnectorBlueprintSpec
     it should "return cannot retrieve for an unexpected response shape" in {
       stubFor(any(urlEqualTo("/retrieve")).willReturn(okJson("{}")))
 
-      retrieve(dataRetrieve.copy(attributes = Attr.FromArray(Nil))).futureValue shouldBe CannotRetrieveResponse
+      retrieve(mkDataRetrieve(attributes = Attr.FromArray(Nil))).futureValue shouldBe CannotRetrieveResponse
     }
 
     it should "return cannot retrieve when the upstream connection fails" in {
@@ -165,7 +171,7 @@ class DataRetrieveConnectorBlueprintSpec
         it should s"preserve $name not found as empty $attributes with manual fallback $manualFallback" in {
           stubFor(any(urlEqualTo("/retrieve")).willReturn(notFound().withBody("""{"NotFound":{}}""")))
 
-          val dr = dataRetrieve.copy(attributes = attributes, manualFallbackIsDesigned = manualFallback)
+          val dr = mkDataRetrieve(attributes = attributes, manualFallbackIsDesigned = Some(manualFallback))
           retrieve(dr).futureValue shouldBe dr.emptyValidResponse()
         }
       }
@@ -174,7 +180,7 @@ class DataRetrieveConnectorBlueprintSpec
         it should s"return cannot retrieve for $name HTTP $status with manual fallback $manualFallback" in {
           stubFor(any(urlEqualTo("/retrieve")).willReturn(aResponse().withStatus(status).withBody("{}")))
 
-          retrieve(dataRetrieve.copy(manualFallbackIsDesigned = manualFallback)).futureValue shouldBe
+          retrieve(mkDataRetrieve(manualFallbackIsDesigned = Some(manualFallback))).futureValue shouldBe
             CannotRetrieveResponse
         }
       }
@@ -190,7 +196,7 @@ class DataRetrieveConnectorBlueprintSpec
       it should s"return cannot retrieve for invalid $name successful JSON: $body" in {
         stubFor(any(urlEqualTo("/retrieve")).willReturn(ok(body)))
 
-        retrieve(dataRetrieve.copy(attributes = Attr.FromArray(Nil))).futureValue shouldBe CannotRetrieveResponse
+        retrieve(mkDataRetrieve(attributes = Attr.FromArray(Nil))).futureValue shouldBe CannotRetrieveResponse
       }
     }
 
@@ -207,7 +213,7 @@ class DataRetrieveConnectorBlueprintSpec
   ).foreach { case (name, retrieve) =>
     it should s"preserve the legacy wrapped NotFound attribute shape for $name" in {
       stubFor(any(urlEqualTo("/retrieve")).willReturn(okJson("""{"NotFound":{}}""")))
-      val dr = dataRetrieve.copy(attributes =
+      val dr = mkDataRetrieve(attributes =
         Attr.FromObject(
           List(
             AttributeInstruction(
@@ -225,7 +231,7 @@ class DataRetrieveConnectorBlueprintSpec
   it should "preserve a caseflow case ID validation error as a business result" in {
     stubFor(get(urlEqualTo("/retrieve")).willReturn(badRequest().withBody("path.caseId failed validation")))
 
-    val dr = dataRetrieve.copy(attributes =
+    val dr = mkDataRetrieve(attributes =
       Attr.FromObject(
         List(
           AttributeInstruction(
@@ -243,7 +249,7 @@ class DataRetrieveConnectorBlueprintSpec
     it should s"preserve empty email details for an FTA emails error wrapping HTTP $status" in {
       stubFor(get(urlEqualTo("/retrieve")).willReturn(serverError().withBody(s"with statusCode: $status")))
 
-      val dr = dataRetrieve.copy(attributes =
+      val dr = mkDataRetrieve(attributes =
         Attr.FromArray(
           List(
             AttributeInstruction(
@@ -268,7 +274,7 @@ class DataRetrieveConnectorBlueprintSpec
     it should s"preserve the business validation result for a $name sort code deny list error" in {
       stubFor(post(urlEqualTo("/retrieve")).willReturn(badRequest().withBody("""{"code":"SORT_CODE_ON_DENY_LIST"}""")))
 
-      val dr = dataRetrieve.copy(attributes =
+      val dr = mkDataRetrieve(attributes =
         Attr.FromObject(
           List(
             AttributeInstruction(
@@ -295,7 +301,7 @@ class DataRetrieveConnectorBlueprintSpec
     List(404, 503).foreach { status =>
       it should s"classify agentDetails HTTP $status through the service with manual fallback $manualFallback" in {
         stubFor(get(urlEqualTo("/retrieve")).willReturn(aResponse().withStatus(status).withBody("""{"NotFound":{}}""")))
-        val dr = dataRetrieve.copy(
+        val dr = mkDataRetrieve(
           tpe = DataRetrieve.Type("agentDetails"),
           attributes = Attr.FromObject(
             List(
@@ -305,7 +311,7 @@ class DataRetrieveConnectorBlueprintSpec
               )
             )
           ),
-          manualFallbackIsDesigned = manualFallback
+          manualFallbackIsDesigned = Some(manualFallback)
         )
         val result = DataRetrieveService.retrieveDataResult(
           dr,
