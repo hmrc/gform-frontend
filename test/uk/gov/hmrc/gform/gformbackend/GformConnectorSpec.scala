@@ -16,31 +16,20 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
-import com.github.tomakehurst.wiremock.client.WireMock._
-import org.apache.pekko.actor.ActorSystem
-import org.scalatest.BeforeAndAfterAll
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{ RETURNS_SELF, mock, when }
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.{ Spec, WiremockSupport }
+import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.wshttp.{ HttpTestUtils, StubbedHttpClientV2 }
+import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.{ HttpClientV2, RequestBuilder }
 
+import java.net.URL
 import java.time.LocalDateTime
+import scala.concurrent.{ ExecutionContext, Future }
 
-class GformConnectorSpec extends Spec with WiremockSupport with BeforeAndAfterAll {
-
-  implicit val system: ActorSystem = ActorSystem()
-
-  override protected def beforeAll(): Unit = {
-    wireMockServer.start()
-    configureFor("localhost", wiremockPort)
-  }
-
-  override protected def afterAll(): Unit = {
-    wireMockServer.stop()
-    system.terminate()
-    ()
-  }
+class GformConnectorSpec extends Spec {
 
   behavior of "GformConnector.formTemplate - happy path"
 
@@ -361,8 +350,13 @@ class GformConnectorSpec extends Spec with WiremockSupport with BeforeAndAfterAl
 
   List(404, 503).foreach { status =>
     it should s"distinguish no records from technical failure for HIP and DES HTTP $status" in {
-      stubFor(any(urlEqualTo("/retrieve")).willReturn(aResponse().withStatus(status).withBody("{}")))
-      val connector = new GformConnector(HttpTestUtils.getTestImpl(wiremockPort), s"http://localhost:$wiremockPort")
+      val httpClient = mock(classOf[HttpClientV2])
+      val requestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
+      when(httpClient.get(any[URL])(any[HeaderCarrier])).thenReturn(requestBuilder)
+      when(httpClient.post(any[URL])(any[HeaderCarrier])).thenReturn(requestBuilder)
+      when(requestBuilder.execute[HttpResponse](any[HttpReads[HttpResponse]], any[ExecutionContext]))
+        .thenReturn(Future.successful(HttpResponse(status, "{}")))
+      val connector = new GformConnector(httpClient, "http://localhost")
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val dataRetrieve = DataRetrieve(
         tpe = DataRetrieve.Type("agentDetails"),
