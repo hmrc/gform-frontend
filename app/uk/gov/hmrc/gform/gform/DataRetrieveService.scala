@@ -86,7 +86,7 @@ object DataRetrieveService {
         case _                                        => Option.empty
       }
 
-    if (previousResult.exists(_.hasFailed)) Future.successful(None)
+    if (previousResult.exists(_.hasFailed.contains(true))) Future.successful(None)
     else
       maybeExecutor.flatTraverse { executor =>
         DataRetrieveService
@@ -159,7 +159,8 @@ object DataRetrieveService {
               requestParams,
               failureCount,
               dataRetrieve.maxFailedAttempts,
-              failureResetTime
+              failureResetTime,
+              hasFailed = Some(false)
             )
           )
         // We need to fail the journey here, otherwise expressions like
@@ -182,7 +183,7 @@ object DataRetrieveService {
               None,
               dataRetrieve.maxFailedAttempts,
               None,
-              hasFailed = true
+              hasFailed = Some(true)
             )
           )
         case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve data")

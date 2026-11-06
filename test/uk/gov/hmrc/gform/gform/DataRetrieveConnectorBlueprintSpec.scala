@@ -331,7 +331,7 @@ class DataRetrieveConnectorBlueprintSpec
         } else {
           val retrieved = result.futureValue.value
           retrieved.data shouldBe RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("agencyName") -> ""))
-          retrieved.hasFailed shouldBe (status == 503)
+          retrieved.hasFailed shouldBe Some(status == 503)
         }
       }
     }

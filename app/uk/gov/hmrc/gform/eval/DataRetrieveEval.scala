@@ -58,7 +58,7 @@ object DataRetrieveEval {
     dataRetrieveCtx: DataRetrieveCtx
   ): Option[List[String]] =
     if (dataRetrieveCtx.attribute == DataRetrieve.hasFailedAttribute)
-      Some(List(dataRetrieveResult.hasFailed.toString))
+      Some(List(dataRetrieveResult.hasFailed.contains(true).toString))
     else
       dataRetrieveResult.data match {
         case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))

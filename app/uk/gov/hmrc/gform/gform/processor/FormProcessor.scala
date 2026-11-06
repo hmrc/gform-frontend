@@ -307,17 +307,18 @@ class FormProcessor(
         formModelVisibilityOptics.freeCalculator.addDataRetrieveResult(dataRetrieveResult) // Side effect !!!
       }
 
-      val populateAtlData: Option[PopulateAtlData] = r.filterNot(_.hasFailed).flatMap { dataRetrieveResult =>
-        dataRetrieve.populateATL
-          .map(populateAtl =>
-            PopulateAtlService.getPopulateAtlData(
-              populateAtl,
-              dataRetrieveResult,
-              formModelOptics,
-              formModelVisibilityOptics
+      val populateAtlData: Option[PopulateAtlData] =
+        r.filterNot(_.hasFailed.contains(true)).flatMap { dataRetrieveResult =>
+          dataRetrieve.populateATL
+            .map(populateAtl =>
+              PopulateAtlService.getPopulateAtlData(
+                populateAtl,
+                dataRetrieveResult,
+                formModelOptics,
+                formModelVisibilityOptics
+              )
             )
-          )
-      }
+        }
       (r, populateAtlData)
     }
   }

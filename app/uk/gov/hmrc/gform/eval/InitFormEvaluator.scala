@@ -160,7 +160,8 @@ object InitFormEvaluator {
                          )
                        )
                        val initFormEvaluator = InitFormEvaluator(currentCache, authConfig, itmpRetrievals)
-                       val previousFailure = currentCache.dataRetrieve.flatMap(_.get(r.id)).filter(_.hasFailed)
+                       val previousFailure =
+                         currentCache.dataRetrieve.flatMap(_.get(r.id)).filter(_.hasFailed.contains(true))
                        if (previousFailure.isDefined) Future.successful(results ++ previousFailure)
                        else if (r.`if`.forall(initFormEvaluator.evalIncludeIf)) {
                          val request = initFormEvaluator.prepareRequest(r)

@@ -72,14 +72,14 @@ class NewFormControllerSpec
       None,
       None,
       None,
-      hasFailed = true
+      hasFailed = Some(true)
     )
     val savedForm = authCacheWithForm.form.copy(
       thirdPartyData = authCacheWithForm.form.thirdPartyData.updateDataRetrieve(List(failure)),
       formData = FormData(List(FormField(FormComponentId("manualAgencyName").modelComponentId, "Manual agency")))
     )
     val recovered = failure.copy(
-      hasFailed = false,
+      hasFailed = Some(false),
       data = RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("agencyName") -> "Recovered agency"))
     )
     val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> recovered)))
@@ -97,22 +97,24 @@ class NewFormControllerSpec
     optics.formModelVisibilityOptics.evalIncludeIfExpr(fallbackCondition, None) shouldBe true
   }
 
-  "Initial retrieval evaluation" should "read hasFailed metadata from an empty list result" in new TestFixture {
+  "Initial retrieval evaluation" should "read optional hasFailed metadata from an empty list result" in new TestFixture {
     val id = DataRetrieveId("agencyInfo")
-    val failure = DataRetrieveResult(
-      id,
-      RetrieveDataType.ListType(List.empty),
-      Json.obj(),
-      None,
-      None,
-      None,
-      hasFailed = true
-    )
-    val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> failure)))
-    val evaluator = InitFormEvaluator(cache, cache.formTemplate.authConfig, None)
-    val ctx = DataRetrieveCtx(id, DataRetrieve.hasFailedAttribute)
-    evaluator.evalExpr(ctx) shouldBe "true"
-    evaluator.evalIncludeIf(IncludeIf(Equals(ctx, Constant("true")))) shouldBe true
+    List(None, Some(false), Some(true)).foreach { hasFailed =>
+      val result = DataRetrieveResult(
+        id,
+        RetrieveDataType.ListType(List.empty),
+        Json.obj(),
+        None,
+        None,
+        None,
+        hasFailed = hasFailed
+      )
+      val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> result)))
+      val evaluator = InitFormEvaluator(cache, cache.formTemplate.authConfig, None)
+      val ctx = DataRetrieveCtx(id, DataRetrieve.hasFailedAttribute)
+      evaluator.evalExpr(ctx) shouldBe hasFailed.contains(true).toString
+      evaluator.evalIncludeIf(IncludeIf(Equals(ctx, Constant("true")))) shouldBe hasFailed.contains(true)
+    }
   }
 
   it should "keep an already selected fallback when initialization runs again" in new TestFixture {
@@ -124,7 +126,7 @@ class NewFormControllerSpec
       None,
       None,
       None,
-      hasFailed = true
+      hasFailed = Some(true)
     )
     val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> failure)))
     val retrieval = DataRetrieve(

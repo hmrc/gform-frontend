@@ -445,7 +445,7 @@ case class DataRetrieveResult(
   failureCount: Option[Int],
   failureMaxAttempts: Option[Int],
   failureCountResetTime: Option[LocalDateTime],
-  hasFailed: Boolean = false
+  hasFailed: Option[Boolean]
 ) {
   def isBlocked(implicit now: Now[LocalDateTime]) =
     (failureMaxAttempts, failureCount, failureCountResetTime) match {
@@ -482,15 +482,5 @@ object DataRetrieveResult {
 
     Format[RetrieveDataType](reads, writes)
   }
-  implicit val format: OFormat[DataRetrieveResult] = {
-    val format: OFormat[DataRetrieveResult] = derived.oformat()
-    OFormat(
-      Reads {
-        case obj: JsObject if !obj.keys.contains("hasFailed") =>
-          format.reads(obj + ("hasFailed" -> JsBoolean(false)))
-        case json => format.reads(json)
-      },
-      format
-    )
-  }
+  implicit val format: OFormat[DataRetrieveResult] = derived.oformat()
 }

@@ -149,10 +149,15 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       Json.toJson(configured).as[DataRetrieve] shouldBe configured
     }
 
-    val result = DataRetrieveResult(dataRetrieve.id, dummyResponse.toRetrieveDataType(), Json.obj(), None, None, None)
+    val result =
+      DataRetrieveResult(dataRetrieve.id, dummyResponse.toRetrieveDataType(), Json.obj(), None, None, None, None)
     val oldResult = Json.toJson(result).as[play.api.libs.json.JsObject] - "hasFailed"
-    oldResult.as[DataRetrieveResult].hasFailed shouldBe false
-    Json.toJson(result.copy(hasFailed = true)).as[DataRetrieveResult].hasFailed shouldBe true
+    oldResult.as[DataRetrieveResult].hasFailed shouldBe None
+    Json.toJson(result.copy(hasFailed = Some(true))).as[DataRetrieveResult].hasFailed shouldBe Some(true)
+    DataRetrieveEval.getDataRetrieveAttribute(
+      Map(dataRetrieve.id -> oldResult.as[DataRetrieveResult]),
+      DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
+    ) shouldBe Some(List("false"))
     (oldDefinition + ("manualFallbackIsDesigned" -> Json.toJson("true"))).validate[DataRetrieve].isError shouldBe true
     (oldResult + ("hasFailed" -> Json.toJson("true"))).validate[DataRetrieveResult].isError shouldBe true
   }
@@ -179,7 +184,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     mockUpstreamResponse(CannotRetrieveResponse)
     val dataRetrieve = validateBankDetailsDataRetrieve(None, manualFallbackIsDesigned = Some(true))
     whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-      result.value.hasFailed shouldBe true
+      result.value.hasFailed shouldBe Some(true)
       val instructions = dataRetrieve.attributes match {
         case Attr.FromObject(inst) => inst
         case _                     => fail("Expected object attributes")
@@ -200,7 +205,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       attributes = Attr.FromArray(List.empty)
     )
     whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-      result.value.hasFailed shouldBe true
+      result.value.hasFailed shouldBe Some(true)
       result.value.data shouldBe RetrieveDataType.ListType(List.empty)
       DataRetrieveEval.getDataRetrieveAttribute(
         Map(dataRetrieve.id -> result.value),
@@ -217,7 +222,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       attributes = Attr.FromArray(List.empty)
     )
     whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-      result.value.hasFailed shouldBe false
+      result.value.hasFailed shouldBe Some(false)
       DataRetrieveEval.getDataRetrieveAttribute(
         Map(dataRetrieve.id -> result.value),
         DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
@@ -233,7 +238,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       )
       mockUpstreamResponse(ServiceResponse(emptyResponse))
       whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-        result.value.hasFailed shouldBe false
+        result.value.hasFailed shouldBe Some(false)
         result.value.data shouldBe emptyResponse.toRetrieveDataType()
         DataRetrieveEval.getDataRetrieveAttribute(
           Map(dataRetrieve.id -> result.value),
@@ -258,7 +263,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       None,
       None,
       None,
-      hasFailed = true
+      hasFailed = Some(true)
     )
     val form = Form.dummy(FormTemplateId("4290"))
     val savedForm = form.copy(thirdPartyData = form.thirdPartyData.updateDataRetrieve(List(failure)))
@@ -268,7 +273,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       result shouldBe None
       verify(mockBankAccountReputationConnector, times(0))
         .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
-      resumedForm.thirdPartyData.dataRetrieve.value(dataRetrieve.id).hasFailed shouldBe true
+      resumedForm.thirdPartyData.dataRetrieve.value(dataRetrieve.id).hasFailed shouldBe Some(true)
     }
   }
 
