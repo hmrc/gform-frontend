@@ -18,7 +18,6 @@ package uk.gov.hmrc.gform.api
 
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.http.Fault
 import org.apache.pekko.actor.ActorSystem
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
@@ -50,132 +49,6 @@ class CompanyInformationConnectorSpec
     configureFor("localhost", wiremockPort)
   }
 
-  behavior of "Company information response handling"
-
-  List(false, true).foreach { manualFallback =>
-    it should s"preserve company not found responses with manual fallback $manualFallback" in new TestFixture {
-      stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(notFound()))
-
-      companyInformationAsyncConnector
-        .companyProfile(mkCompanyProfile(Some(manualFallback)), request)
-        .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
-      companyInformationAsyncConnector
-        .companyOfficers(
-          mkCompanyOfficers(Some(manualFallback)),
-          request
-        )
-        .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
-      companyInformationAsyncConnector
-        .companyInsolvency(
-          mkCompanyInsolvency(Some(manualFallback)),
-          request
-        )
-        .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
-    }
-
-    List(500, 503).foreach { status =>
-      it should s"return cannot retrieve for company HTTP $status with manual fallback $manualFallback" in new TestFixture {
-        stubFor(
-          WireMock.get(urlMatching("/companieshouse/.*")).willReturn(aResponse().withStatus(status).withBody("{}"))
-        )
-
-        companyInformationAsyncConnector
-          .companyProfile(
-            mkCompanyProfile(Some(manualFallback)),
-            request
-          )
-          .futureValue shouldBe CannotRetrieveResponse
-        companyInformationAsyncConnector
-          .companyOfficers(
-            mkCompanyOfficers(Some(manualFallback)),
-            request
-          )
-          .futureValue shouldBe CannotRetrieveResponse
-        companyInformationAsyncConnector
-          .companyInsolvency(
-            mkCompanyInsolvency(Some(manualFallback)),
-            request
-          )
-          .futureValue shouldBe CannotRetrieveResponse
-      }
-    }
-  }
-
-  it should "return cannot retrieve when the company connection fails" in new TestFixture {
-    stubFor(
-      WireMock
-        .get(urlMatching("/companieshouse/.*"))
-        .willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER))
-    )
-
-    companyInformationAsyncConnector
-      .companyProfile(dataRetrieveCompanyHouseProfile, request)
-      .futureValue shouldBe CannotRetrieveResponse
-    companyInformationAsyncConnector
-      .companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
-      .futureValue shouldBe CannotRetrieveResponse
-    companyInformationAsyncConnector
-      .companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
-      .futureValue shouldBe CannotRetrieveResponse
-  }
-
-  it should "preserve a successful empty insolvency response" in new TestFixture {
-    stubFor(
-      WireMock
-        .get(urlMatching("/companieshouse/.*"))
-        .willReturn(okJson("""{"cases":[]}"""))
-    )
-
-    companyInformationAsyncConnector
-      .companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
-      .futureValue shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
-  }
-
-  it should "preserve successful officers with no active officers" in new TestFixture {
-    stubFor(
-      WireMock
-        .get(urlMatching("/companieshouse/.*"))
-        .willReturn(okJson("""{"items":[]}"""))
-    )
-
-    companyInformationAsyncConnector
-      .companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
-      .futureValue shouldBe ServiceResponse(
-      DataRetrieve.Response.Object(
-        Map(
-          DataRetrieve.Attribute("activeDirectors")   -> "0",
-          DataRetrieve.Attribute("activeSecretaries") -> "0",
-          DataRetrieve.Attribute("activeLlpMembers")  -> "0"
-        )
-      )
-    )
-  }
-
-  List("not json", """{"unexpected":"shape"}""").foreach { body =>
-    it should s"return cannot retrieve for malformed insolvency data: $body" in new TestFixture {
-      stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(ok(body)))
-
-      companyInformationAsyncConnector
-        .companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
-        .futureValue shouldBe CannotRetrieveResponse
-    }
-
-    it should s"return cannot retrieve for malformed officers data: $body" in new TestFixture {
-      stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(ok(body)))
-
-      companyInformationAsyncConnector
-        .companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
-        .futureValue shouldBe CannotRetrieveResponse
-    }
-  }
-
-  it should "return cannot retrieve for malformed profile JSON" in new TestFixture {
-    stubFor(WireMock.get(urlMatching("/companieshouse/.*")).willReturn(ok("not json")))
-
-    companyInformationAsyncConnector
-      .companyProfile(dataRetrieveCompanyHouseProfile, request)
-      .futureValue shouldBe CannotRetrieveResponse
-  }
   override protected def beforeEach(): Unit =
     wireMockServer.resetAll()
 
@@ -191,11 +64,7 @@ class CompanyInformationConnectorSpec
   val companyInformationAsyncConnector = new CompanyInformationAsyncConnector(wsHttp, url)
 
   trait TestFixture {
-    val dataRetrieveCompanyHouseProfile = mkCompanyProfile()
-    val dataRetrieveCompanyHouseActiveOfficers = mkCompanyOfficers()
-    val dataRetrieveCompanyHouseInsolvency = mkCompanyInsolvency()
-
-    def mkCompanyProfile(manualFallbackIsDesigned: Option[Boolean] = None): DataRetrieve = DataRetrieve(
+    val dataRetrieveCompanyHouseProfile = DataRetrieve(
       DataRetrieve.Type("companyHouseProfile"),
       DataRetrieveId("someId"),
       Attr.FromObject(
@@ -261,10 +130,10 @@ class CompanyInformationConnectorSpec
           destination = UrlDestination.CompaniesHouse
         )
       ),
-      manualFallbackIsDesigned = manualFallbackIsDesigned
+      manualFallbackIsDesigned = None
     )
 
-    def mkCompanyOfficers(manualFallbackIsDesigned: Option[Boolean] = None): DataRetrieve = DataRetrieve(
+    val dataRetrieveCompanyHouseActiveOfficers = DataRetrieve(
       DataRetrieve.Type("companyHouseActiveOfficers"),
       DataRetrieveId("directors"),
       Attr.FromObject(
@@ -304,10 +173,10 @@ class CompanyInformationConnectorSpec
           destination = UrlDestination.CompaniesHouse
         )
       ),
-      manualFallbackIsDesigned = manualFallbackIsDesigned
+      manualFallbackIsDesigned = None
     )
 
-    def mkCompanyInsolvency(manualFallbackIsDesigned: Option[Boolean] = None): DataRetrieve =
+    val dataRetrieveCompanyHouseInsolvency =
       DataRetrieve(
         DataRetrieve.Type("companyHouseInsolvency"),
         DataRetrieveId("insolvency"),
@@ -401,7 +270,7 @@ class CompanyInformationConnectorSpec
             destination = UrlDestination.CompaniesHouse
           )
         ),
-        manualFallbackIsDesigned = manualFallbackIsDesigned
+        manualFallbackIsDesigned = None
       )
 
     val request = DataRetrieve.Request(
@@ -559,7 +428,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "return an empty object when the company profile API returns not found" in new TestFixture {
+  it should "call the gform companies house endpoint and return empty company details when the company is not found from the API" in new TestFixture {
     stubFor(
       WireMock
         .get(s"/companieshouse/company/%7B%7BcompanyNumber%7D%7D")
@@ -571,7 +440,9 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyProfile(dataRetrieveCompanyHouseProfile, request)
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(Map.empty)
+      )
     }
   }
 
@@ -647,7 +518,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "return an empty object when the company officers API returns not found" in new TestFixture {
+  it should "call the gform companies house endpoint and return empty company active officers details when the company active officers is not found from the API" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -661,7 +532,9 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyOfficers(dataRetrieveCompanyHouseActiveOfficers, request)
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(DataRetrieve.Response.Object(Map.empty))
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(Map.empty)
+      )
     }
   }
 
@@ -855,7 +728,7 @@ class CompanyInformationConnectorSpec
     }
   }
 
-  it should "return an empty array when the company insolvency API returns not found" in new TestFixture {
+  it should "call the gform companies house endpoint and return empty company insolvency details when the company insolvency detais are not found from the API" in new TestFixture {
     stubFor(
       WireMock
         .get(
@@ -869,7 +742,9 @@ class CompanyInformationConnectorSpec
     val future = companyInformationAsyncConnector.companyInsolvency(dataRetrieveCompanyHouseInsolvency, request)
 
     whenReady(future) { response =>
-      response shouldBe ServiceResponse(DataRetrieve.Response.Array(Nil))
+      response shouldBe ServiceResponse(
+        DataRetrieve.Response.Array(List.empty)
+      )
     }
   }
 

@@ -65,11 +65,12 @@ class DataRetrieveConnectorBlueprint(
       .setHeader(header: _*)
       .execute[HttpResponse]
       .map { response =>
-        val businessResponse = exceptionalResponse(response)
-        (businessResponse, response.status) match {
+        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponse(response)
+        (maybeExceptionalResponse, response.status) match {
           case (Some(_), _) | (_, OK) =>
+            val responseJson = maybeExceptionalResponse.fold(response.json)(ex => Json.parse(ex.response))
             dataRetrieve
-              .processResponse(businessResponse.fold(response.json)(ex => Json.parse(ex.response)))
+              .processResponse(responseJson)
               .fold(
                 invalid => {
                   logger.error(
@@ -97,6 +98,10 @@ class DataRetrieveConnectorBlueprint(
           CannotRetrieveResponse
       }
   }
+
+  private def exceptionalResponse(httpResponse: HttpResponse) = exceptionalResponses.flatMap(_.find { ex =>
+    httpResponse.status == ex.statusMatch && httpResponse.body.contains(ex.responseMatch)
+  })
 
   def post(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(
     implicit
@@ -131,11 +136,14 @@ class DataRetrieveConnectorBlueprint(
       .execute[HttpResponse]
       .map { httpResponse =>
         val status: Int = httpResponse.status
-        val businessResponse = exceptionalResponse(httpResponse)
-        (businessResponse, status) match {
-          case (Some(_), _) | (_, OK) =>
+        val maybeExceptionalResponse: Option[ExceptionalResponse] = exceptionalResponse(httpResponse)
+
+        (maybeExceptionalResponse, status) match {
+          case (Some(_), _) | (_, 200) =>
+            val responseJson = maybeExceptionalResponse.fold(httpResponse.json)(ex => Json.parse(ex.response))
+
             dataRetrieve
-              .processResponse(businessResponse.fold(httpResponse.json)(ex => Json.parse(ex.response)))
+              .processResponse(responseJson)
               .fold(
                 invalid => {
                   logger.error(
@@ -164,10 +172,6 @@ class DataRetrieveConnectorBlueprint(
       }
   }
 
-  private def exceptionalResponse(response: HttpResponse): Option[ExceptionalResponse] =
-    exceptionalResponses.flatMap(
-      _.find(ex => response.status == ex.statusMatch && response.body.contains(ex.responseMatch))
-    )
 }
 
 case class ExceptionalResponse(statusMatch: Int, responseMatch: String, response: String)

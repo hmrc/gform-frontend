@@ -153,17 +153,11 @@ object InitFormEvaluator {
     for {
       results <- dataRetrieve.fold(Future.successful(List.empty[DataRetrieveResult])) { r =>
                    r.toList.foldLeft(Future.successful(List.empty[DataRetrieveResult])) { case (acc, r) =>
-                     acc.flatMap { results =>
-                       val currentCache = cache.copy(dataRetrieve =
-                         Some(
-                           cache.dataRetrieve.getOrElse(Map.empty) ++ results.map(result => result.id -> result)
-                         )
-                       )
-                       val initFormEvaluator = InitFormEvaluator(currentCache, authConfig, itmpRetrievals)
-                       val previousFailure =
-                         currentCache.dataRetrieve.flatMap(_.get(r.id)).filter(_.hasFailed.contains(true))
-                       if (previousFailure.isDefined) Future.successful(results ++ previousFailure)
-                       else if (r.`if`.forall(initFormEvaluator.evalIncludeIf)) {
+                     val initFormEvaluator = InitFormEvaluator(cache, authConfig, itmpRetrievals)
+                     val previousFailure = cache.dataRetrieve.flatMap(_.get(r.id)).filter(_.hasFailed.contains(true))
+                     acc.flatMap {
+                       case results if previousFailure.isDefined => Future.successful(results ++ previousFailure)
+                       case results if r.`if`.forall(initFormEvaluator.evalIncludeIf) =>
                          val request = initFormEvaluator.prepareRequest(r)
                          DataRetrieveService
                            .retrieveDataResult(
@@ -182,7 +176,8 @@ object InitFormEvaluator {
                              case Some(result) => results :+ result
                              case None         => results
                            }
-                       } else Future.successful(results)
+                       case results =>
+                         Future.successful(results)
                      }
                    }
                  }

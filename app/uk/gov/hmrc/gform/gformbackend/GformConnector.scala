@@ -507,20 +507,21 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       request.correlationId.fold(Seq.empty[(String, String)])(cId => Seq("correlationId" -> cId))
     )
 
+  private val caseflowExceptionalResponses = Some(
+    List(
+      ExceptionalResponse(
+        400,
+        "path.caseId failed validation",
+        """{"error":"CASE_ID_VALIDATION_ERROR"}"""
+      )
+    )
+  )
   private val caseflowCaseDetailsB =
     new DataRetrieveConnectorBlueprint(
       httpClient,
       baseUrl,
       "caseflow case details",
-      Some(
-        List(
-          ExceptionalResponse(
-            400,
-            "path.caseId failed validation",
-            """{"error":"CASE_ID_VALIDATION_ERROR"}"""
-          )
-        )
-      )
+      caseflowExceptionalResponses
     )
 
   def getCaseflowCaseDetails(
@@ -550,9 +551,16 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
       "fta manage emails",
       Some(
         List(
-          // PDS business responses are historically wrapped as backend HTTP 500 errors.
-          ExceptionalResponse(500, "with statusCode: 400", """[{"primaryEmail": "","secondaryEmails": []}]"""),
-          ExceptionalResponse(500, "with statusCode: 404", """[{"primaryEmail": "","secondaryEmails": []}]""")
+          ExceptionalResponse(
+            500,
+            "with statusCode: 400", // Bad request from a GET?
+            """[{"primaryEmail": "","secondaryEmails": []}]"""
+          ),
+          ExceptionalResponse(
+            500,
+            "with statusCode: 404", // Not found should be the usual response from PDS
+            """[{"primaryEmail": "","secondaryEmails": []}]"""
+          )
         )
       )
     )

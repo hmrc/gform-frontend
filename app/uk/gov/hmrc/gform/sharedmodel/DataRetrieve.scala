@@ -482,5 +482,5 @@ object DataRetrieveResult {
 
     Format[RetrieveDataType](reads, writes)
   }
-  implicit val format: OFormat[DataRetrieveResult] = derived.oformat()
+  implicit val format: Format[DataRetrieveResult] = derived.oformat()
 }

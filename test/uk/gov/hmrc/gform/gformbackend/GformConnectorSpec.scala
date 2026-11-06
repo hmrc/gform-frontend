@@ -16,15 +16,31 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import com.github.tomakehurst.wiremock.client.WireMock._
+import org.apache.pekko.actor.ActorSystem
+import org.scalatest.BeforeAndAfterAll
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.Spec
+import uk.gov.hmrc.gform.{ Spec, WiremockSupport }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
+import uk.gov.hmrc.gform.wshttp.{ HttpTestUtils, StubbedHttpClientV2 }
 import uk.gov.hmrc.http._
 
 import java.time.LocalDateTime
 
-class GformConnectorSpec extends Spec {
+class GformConnectorSpec extends Spec with WiremockSupport with BeforeAndAfterAll {
+
+  implicit val system: ActorSystem = ActorSystem()
+
+  override protected def beforeAll(): Unit = {
+    wireMockServer.start()
+    configureFor("localhost", wiremockPort)
+  }
+
+  override protected def afterAll(): Unit = {
+    wireMockServer.stop()
+    system.terminate()
+    ()
+  }
 
   behavior of "GformConnector.formTemplate - happy path"
 
@@ -339,6 +355,40 @@ class GformConnectorSpec extends Spec {
     )
 
     connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+  }
+
+  behavior of "Data retrieve no-record responses"
+
+  List(404, 503).foreach { status =>
+    it should s"distinguish no records from technical failure for HIP and DES HTTP $status" in {
+      stubFor(any(urlEqualTo("/retrieve")).willReturn(aResponse().withStatus(status).withBody("{}")))
+      val connector = new GformConnector(HttpTestUtils.getTestImpl(wiremockPort), s"http://localhost:$wiremockPort")
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val dataRetrieve = DataRetrieve(
+        tpe = DataRetrieve.Type("agentDetails"),
+        id = DataRetrieveId("agencyInfo"),
+        attributes = Attr.FromObject(
+          List(AttributeInstruction(DataRetrieve.Attribute("name"), ConstructAttribute.AsIs(Fetch(List("name")))))
+        ),
+        attrTypeMapping = Map.empty,
+        params = Nil,
+        `if` = None,
+        maxFailedAttempts = None,
+        failureCountResetMinutes = None,
+        callOnNoChange = false,
+        populateATL = None,
+        urlFrontend = UrlDescriptor("/retrieve", UrlDestination.GForm),
+        urlBackend = None,
+        manualFallbackIsDesigned = None
+      )
+      val request = DataRetrieve.Request(Json.obj(), Nil, None, None, None)
+      val expected = if (status == 404) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
+
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe expected
+      connector
+        .getDesOrganisation(dataRetrieve.copy(tpe = DataRetrieve.Type("hmrcRosmRegistrationCheck")), request)
+        .futureValue shouldBe expected
+    }
   }
 
   trait Fixture extends ExampleData {
