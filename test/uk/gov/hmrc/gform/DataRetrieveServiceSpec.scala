@@ -145,7 +145,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     oldDefinition.as[DataRetrieve].manualFallbackIsDesigned shouldBe None
     dataRetrieve.manualFallbackIsDesigned shouldBe None
     List(false, true).foreach { flag =>
-      val configured = validateBankDetailsDataRetrieve(None, manualFallbackIsDesigned = Some(flag))
+      val configured = dataRetrieve.copy(manualFallbackIsDesigned = Some(flag))
       Json.toJson(configured).as[DataRetrieve] shouldBe configured
     }
 
@@ -165,7 +165,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
   it should "fail the journey on an upstream error unless explicitly enabled" in new TestFixture {
     mockUpstreamResponse(CannotRetrieveResponse)
     List(None, Some(false)).foreach { flag =>
-      val dataRetrieve = validateBankDetailsDataRetrieve(None, manualFallbackIsDesigned = flag)
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = flag)
       val result = callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))
       whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
     }
@@ -174,7 +174,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
   it should "fail the journey on an unclassified not-found response by default" in new TestFixture {
     mockUpstreamResponse(NotFound)
     List(None, Some(false)).foreach { flag =>
-      val dataRetrieve = validateBankDetailsDataRetrieve(None, manualFallbackIsDesigned = flag)
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = flag)
       val result = callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))
       whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
     }
@@ -182,7 +182,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
 
   it should "persist a failed object result with empty attributes when enabled" in new TestFixture {
     mockUpstreamResponse(CannotRetrieveResponse)
-    val dataRetrieve = validateBankDetailsDataRetrieve(None, manualFallbackIsDesigned = Some(true))
+    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = Some(true))
     whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
       result.value.hasFailed shouldBe Some(true)
       val instructions = dataRetrieve.attributes match {
@@ -199,8 +199,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
 
   it should "expose failure independently of an empty list payload" in new TestFixture {
     mockUpstreamResponse(NotFound)
-    val dataRetrieve = validateBankDetailsDataRetrieve(
-      None,
+    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
       manualFallbackIsDesigned = Some(true),
       attributes = Attr.FromArray(List.empty)
     )
@@ -216,8 +215,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
 
   it should "keep successful empty responses on the normal path" in new TestFixture {
     mockUpstreamResponse(ServiceResponse(DataRetrieve.Response.Array(List.empty)))
-    val dataRetrieve = validateBankDetailsDataRetrieve(
-      None,
+    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
       manualFallbackIsDesigned = Some(true),
       attributes = Attr.FromArray(List.empty)
     )
@@ -232,7 +230,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
 
   List(false, true).foreach { manualFallback =>
     it should s"keep a connector-classified no-record result on the normal path with fallback $manualFallback" in new TestFixture {
-      val dataRetrieve = validateBankDetailsDataRetrieve(None, manualFallbackIsDesigned = Some(manualFallback))
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = Some(manualFallback))
       val emptyResponse = DataRetrieve.Response.Object(
         Map(DataRetrieve.Attribute("isValid") -> "")
       )
@@ -250,8 +248,7 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
 
   it should "not retry after recovery, changed parameters or callOnNoChange when fallback is saved" in new TestFixture {
     mockSuccessResponse()
-    val dataRetrieve = validateBankDetailsDataRetrieve(
-      None,
+    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
       manualFallbackIsDesigned = Some(true),
       callOnNoChange = true,
       id = DataRetrieveId("1_bankDetails")
@@ -269,7 +266,19 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     val savedForm = form.copy(thirdPartyData = form.thirdPartyData.updateDataRetrieve(List(failure)))
     val resumedForm = Json.toJson(savedForm).as[Form]
     val request = mkRequest(None, None).copy(params = List("accountNumber" -> "changed"))
-    whenReady(callDataRetrieveServiceWith(dataRetrieve, request, Some(resumedForm))) { result =>
+    val result = DataRetrieveService.retrieveDataResult(
+      dataRetrieve,
+      Some(resumedForm),
+      request,
+      Some(mockBankAccountReputationConnector),
+      None,
+      None,
+      None,
+      None,
+      None,
+      None
+    )
+    whenReady(result) { result =>
       result shouldBe None
       verify(mockBankAccountReputationConnector, times(0))
         .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
@@ -292,59 +301,51 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
       )
     )
 
-    val bankDetailsAttributes: Attr = Attr.FromObject(
-      List(
-        AttributeInstruction(
-          DataRetrieve.Attribute("isValid"),
-          ConstructAttribute.AsIs(Fetch(List("accountNumberIsWellFormatted")))
-        ),
-        AttributeInstruction(
-          DataRetrieve.Attribute("sortCodeIsPresentOnEISCD"),
-          ConstructAttribute.AsIs(Fetch(List("sortCodeIsPresentOnEISCD")))
-        ),
-        AttributeInstruction(
-          DataRetrieve.Attribute("sortCodeBankName"),
-          ConstructAttribute.AsIs(Fetch(List("sortCodeBankName")))
-        ),
-        AttributeInstruction(
-          DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs"),
-          ConstructAttribute.AsIs(Fetch(List("nonStandardAccountDetailsRequiredForBacs")))
-        ),
-        AttributeInstruction(
-          DataRetrieve.Attribute("sortCodeSupportsDirectDebit"),
-          ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectDebit")))
-        ),
-        AttributeInstruction(
-          DataRetrieve.Attribute("sortCodeSupportsDirectCredit"),
-          ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectCredit")))
-        ),
-        AttributeInstruction(DataRetrieve.Attribute("iban"), ConstructAttribute.AsIs(Fetch(List("iban"))))
-      )
-    )
-
-    def validateBankDetailsDataRetrieve(
-      resetMinutes: Option[Int],
-      manualFallbackIsDesigned: Option[Boolean] = None,
-      attributes: Attr = bankDetailsAttributes,
-      callOnNoChange: Boolean = false,
-      id: DataRetrieveId = DataRetrieveId("someId")
-    ): DataRetrieve = DataRetrieve(
+    def validateBankDetailsDataRetrieve(resetMinutes: Option[Int]): DataRetrieve = DataRetrieve(
       DataRetrieve.Type("validateBankDetails"),
-      id,
-      attributes,
+      DataRetrieveId("someId"),
+      Attr.FromObject(
+        List(
+          AttributeInstruction(
+            DataRetrieve.Attribute("isValid"),
+            ConstructAttribute.AsIs(Fetch(List("accountNumberIsWellFormatted")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sortCodeIsPresentOnEISCD"),
+            ConstructAttribute.AsIs(Fetch(List("sortCodeIsPresentOnEISCD")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sortCodeBankName"),
+            ConstructAttribute.AsIs(Fetch(List("sortCodeBankName")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("nonStandardAccountDetailsRequiredForBacs"),
+            ConstructAttribute.AsIs(Fetch(List("nonStandardAccountDetailsRequiredForBacs")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sortCodeSupportsDirectDebit"),
+            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectDebit")))
+          ),
+          AttributeInstruction(
+            DataRetrieve.Attribute("sortCodeSupportsDirectCredit"),
+            ConstructAttribute.AsIs(Fetch(List("sortCodeSupportsDirectCredit")))
+          ),
+          AttributeInstruction(DataRetrieve.Attribute("iban"), ConstructAttribute.AsIs(Fetch(List("iban"))))
+        )
+      ),
       Map.empty[DataRetrieve.Attribute, DataRetrieve.AttrType],
       List.empty[DataRetrieve.ParamExpr],
       None,
       resetMinutes.map(_ => 3),
       resetMinutes,
-      callOnNoChange,
+      false,
       None,
       UrlDescriptor(
         urlPath = "/bank-details/validate",
         destination = UrlDestination.MDTP
       ),
       None,
-      manualFallbackIsDesigned = manualFallbackIsDesigned
+      manualFallbackIsDesigned = None
     )
 
     def mkRequest(count: Option[Int], resetTime: Option[LocalDateTime]) = DataRetrieve.Request(
@@ -383,14 +384,10 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
         )
       ).thenReturn(Future.successful(response))
 
-    def callDataRetrieveServiceWith(
-      dataRetrieve: DataRetrieve,
-      request: DataRetrieve.Request,
-      form: Option[Form] = None
-    ) =
+    def callDataRetrieveServiceWith(dataRetrieve: DataRetrieve, request: DataRetrieve.Request) =
       DataRetrieveService.retrieveDataResult(
         dataRetrieve,
-        form,
+        None,
         request,
         Some(mockBankAccountReputationConnector),
         None,
