@@ -18,11 +18,11 @@ package uk.gov.hmrc.gform.gform
 
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.http.Status.{ NOT_FOUND, OK }
-import play.api.libs.json.Json
+import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.sharedmodel._
-import uk.gov.hmrc.http.HttpReads.Implicits.readRaw
+import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse, StringContextOps }
 
@@ -38,8 +38,39 @@ class DataRetrieveConnectorBlueprint(
   def get(dataRetrieve: DataRetrieve, request: DataRetrieve.Request, header: Seq[(String, String)] = Seq.empty)(implicit
     ex: ExecutionContext,
     hc: HeaderCarrier
-  ): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    getResponse(dataRetrieve, request, header, emptyIfNotFound = false)
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
+
+    val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
+
+    httpClient
+      .get(url"$url")
+      .setHeader(header: _*)
+      .execute[JsValue]
+      .map { response =>
+        dataRetrieve
+          .processResponse(response)
+          .fold(
+            invalid => {
+              logger.error(
+                s"Calling $identifier returned successfully, but marshalling of data failed with: $invalid"
+              )
+              CannotRetrieveResponse
+            },
+            valid => {
+              logger.info(s"Calling $identifier returned Success.")
+              ServiceResponse(valid)
+            }
+          )
+      }
+      .recover {
+        case drResponseEx: DataRetrieveResponseValidationException =>
+          logger.error(s"Response validation errors when calling $identifier: ${drResponseEx.getMessage}")
+          CannotRetrieveResponse
+        case otherEx =>
+          logger.error(s"Unknown problem when calling $identifier", otherEx)
+          CannotRetrieveResponse
+      }
+  }
 
   def getEmptyIfNotFound(
     dataRetrieve: DataRetrieve,
