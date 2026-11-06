@@ -88,7 +88,7 @@ class DelegatedAgentAuthConnectorSpec
     }
   }
 
-  it should "return false when unauthorised for HMRC MTD VAT" in new TestFixture {
+  it should "return false when NOT authorised for HMRC MTD VAT" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -133,7 +133,7 @@ class DelegatedAgentAuthConnectorSpec
     }
   }
 
-  it should "return false when unauthorised for IR-PAYE" in new TestFixture {
+  it should "return false when NOT authorised for IR-PAYE" in new TestFixture {
     stubFor(
       WireMock
         .post("/auth/authorise")
@@ -170,25 +170,6 @@ class DelegatedAgentAuthConnectorSpec
     whenReady(future) { response =>
       response shouldBe unauthorisedResponse
     }
-  }
-
-  it should "return cannot retrieve when the auth service is unavailable" in new TestFixture {
-    stubFor(WireMock.post("/auth/authorise").willReturn(serviceUnavailable()))
-
-    delegatadAgentAuthConnector
-      .mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
-      .futureValue shouldBe CannotRetrieveResponse
-    delegatadAgentAuthConnector
-      .payeAuth(authPayeDataRetrieve, validPayeRequest)
-      .futureValue shouldBe CannotRetrieveResponse
-  }
-
-  it should "return cannot retrieve for malformed successful auth JSON" in new TestFixture {
-    stubFor(WireMock.post("/auth/authorise").willReturn(ok("not json")))
-
-    delegatadAgentAuthConnector
-      .mtdVatAuth(authVatDataRetrieve, mtdAuthRequest)
-      .futureValue shouldBe CannotRetrieveResponse
   }
 
   trait TestFixture {

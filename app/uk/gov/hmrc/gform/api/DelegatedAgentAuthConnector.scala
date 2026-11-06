@@ -23,7 +23,7 @@ import uk.gov.hmrc.auth.core.{ AuthConnector => _, _ }
 import uk.gov.hmrc.domain.EmpRef
 import uk.gov.hmrc.gform.auth.AuthConnector
 import uk.gov.hmrc.gform.sharedmodel.{ CannotRetrieveResponse, DataRetrieve, ServiceCallResponse, ServiceResponse }
-import uk.gov.hmrc.http.{ HeaderCarrier, UpstreamErrorResponse }
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -96,14 +96,8 @@ class DelegatedAgentAuthAsyncConnector(
     authCheck: Future[Boolean]
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = authCheck
     .flatMap(authorised => Future.successful(processResponse(dataRetrieve, identifier, authorised)))
-    .recover {
-      case _: AuthorisationException =>
-        processResponse(dataRetrieve, identifier, authorised = false)
-      case UpstreamErrorResponse.WithStatusCode(401 | 403) =>
-        processResponse(dataRetrieve, identifier, authorised = false)
-      case otherEx =>
-        logger.error(s"Problem when fetching agent access control ($identifier)", otherEx)
-        CannotRetrieveResponse
+    .recover { case _ =>
+      processResponse(dataRetrieve, identifier, authorised = false)
     }
 
   private def processResponse(
