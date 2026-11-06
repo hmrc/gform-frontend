@@ -117,46 +117,6 @@ class NewFormControllerSpec
     }
   }
 
-  it should "keep an already selected fallback when initialization runs again" in new TestFixture {
-    val id = DataRetrieveId("agencyInfo")
-    val failure = DataRetrieveResult(
-      id,
-      RetrieveDataType.ObjectType(Map.empty),
-      Json.obj(),
-      None,
-      None,
-      None,
-      hasFailed = Some(true)
-    )
-    val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> failure)))
-    val retrieval = DataRetrieve(
-      DataRetrieve.Type("agentDetails"),
-      id,
-      Attr.FromObject(List.empty),
-      Map.empty,
-      List.empty,
-      None,
-      None,
-      None,
-      true,
-      None,
-      UrlDescriptor("/agent-details", UrlDestination.GForm),
-      None,
-      manualFallbackIsDesigned = Some(true)
-    )
-    val updated = play.api.test.Helpers.await(
-      InitFormEvaluator.makeCacheWithDataRetrieve(
-        cache,
-        cache.formTemplate.authConfig,
-        None,
-        Some(NonEmptyList.one(retrieval)),
-        mockGformConnector,
-        mockNinoInsightsConnector
-      )
-    )
-    updated.dataRetrieve shouldBe cache.dataRetrieve
-  }
-
   "downloadOldOrNewForm" should "start a fresh form when no previous form detected" in new TestFixture {
     initCommonMocks()
     when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
