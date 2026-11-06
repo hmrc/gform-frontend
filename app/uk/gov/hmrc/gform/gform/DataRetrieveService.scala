@@ -17,6 +17,7 @@
 package uk.gov.hmrc.gform.gform
 
 import cats.syntax.all._
+import org.slf4j.LoggerFactory
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.gform.api.{ BankAccountInsightsConnector, CompanyInformationConnector, DelegatedAgentAuthConnector, NinoInsightsConnector }
 import uk.gov.hmrc.gform.bars.BankAccountReputationConnector
@@ -31,6 +32,7 @@ import java.time.temporal.ChronoUnit
 import scala.concurrent.{ ExecutionContext, Future }
 
 object DataRetrieveService {
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def retrieveDataResult(
     dataRetrieve: DataRetrieve,
@@ -44,7 +46,8 @@ object DataRetrieveService {
     fileSystemConnector: Option[FileSystemConnector],
     delegatedAgentAuthConnector: Option[DelegatedAgentAuthConnector[Future]]
   )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[Option[DataRetrieveResult]] = {
-    val maybeRequestParams = form.flatMap(f => DataRetrieve.requestParamsFromCache(f, dataRetrieve.id))
+    val previousResult = form.flatMap(_.thirdPartyData.dataRetrieve.flatMap(_.get(dataRetrieve.id)))
+    val maybeRequestParams = previousResult.map(_.requestParams)
     val maybeExecutor
       : Option[(DataRetrieve, DataRetrieve.Request) => Future[ServiceCallResponse[DataRetrieve.Response]]] =
       dataRetrieve.tpe match {
@@ -83,16 +86,18 @@ object DataRetrieveService {
         case _                                        => Option.empty
       }
 
-    maybeExecutor.flatTraverse { executor =>
-      DataRetrieveService
-        .retrieveData(
-          dataRetrieve,
-          request,
-          maybeRequestParams,
-          executor,
-          maybeFailureTest
-        )
-    }
+    if (previousResult.exists(_.hasFailed.contains(true))) Future.successful(None)
+    else
+      maybeExecutor.flatTraverse { executor =>
+        DataRetrieveService
+          .retrieveData(
+            dataRetrieve,
+            request,
+            maybeRequestParams,
+            executor,
+            maybeFailureTest
+          )
+      }
   }
 
   private def retrieveData(
@@ -154,12 +159,33 @@ object DataRetrieveService {
               requestParams,
               failureCount,
               dataRetrieve.maxFailedAttempts,
-              failureResetTime
+              failureResetTime,
+              hasFailed = Some(false)
             )
           )
         // We need to fail the journey here, otherwise expressions like
         // ${dataRetrieve.bankDetails.isValid='no'} etc.
         // will always evaluate to false
+        case CannotRetrieveResponse | NotFound if dataRetrieve.manualFallbackIsDesigned.contains(true) =>
+          logger.warn(
+            s"Selecting manual fallback for data retrieve '${dataRetrieve.id.value}' (${dataRetrieve.tpe.name})"
+          )
+          val emptyData = dataRetrieve.attributes match {
+            case Attr.FromObject(attributes) =>
+              RetrieveDataType.ObjectType(attributes.map(_.attribute -> "").toMap)
+            case Attr.FromArray(_) => RetrieveDataType.ListType(List.empty)
+          }
+          Some(
+            DataRetrieveResult(
+              dataRetrieve.id,
+              emptyData,
+              requestParams,
+              None,
+              dataRetrieve.maxFailedAttempts,
+              None,
+              hasFailed = Some(true)
+            )
+          )
         case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve data")
       }
     }

@@ -163,7 +163,8 @@ case class DataRetrieve(
   callOnNoChange: Boolean,
   populateATL: Option[PopulateATL],
   urlFrontend: UrlDescriptor,
-  urlBackend: Option[UrlDescriptor]
+  urlBackend: Option[UrlDescriptor],
+  manualFallbackIsDesigned: Option[Boolean]
 ) {
 
   def prepareRequest(
@@ -396,6 +397,7 @@ object DataRetrieve {
   val failureIsBlockedAttribute: Attribute = Attribute("isBlocked")
   val failureResetTimeAttribute: Attribute = Attribute("unblockTime")
   val failureResetDateAttribute: Attribute = Attribute("unblockDate")
+  val hasFailedAttribute: Attribute = Attribute("hasFailed")
 
   object Attribute {
 
@@ -442,7 +444,8 @@ case class DataRetrieveResult(
   requestParams: JsValue, // Request data used to decide if new call to the API is need when input data are changing
   failureCount: Option[Int],
   failureMaxAttempts: Option[Int],
-  failureCountResetTime: Option[LocalDateTime]
+  failureCountResetTime: Option[LocalDateTime],
+  hasFailed: Option[Boolean]
 ) {
   def isBlocked(implicit now: Now[LocalDateTime]) =
     (failureMaxAttempts, failureCount, failureCountResetTime) match {

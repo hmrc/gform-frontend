@@ -57,10 +57,13 @@ object DataRetrieveEval {
     dataRetrieveResult: DataRetrieveResult,
     dataRetrieveCtx: DataRetrieveCtx
   ): Option[List[String]] =
-    dataRetrieveResult.data match {
-      case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
-      case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
-    }
+    if (dataRetrieveCtx.attribute == DataRetrieve.hasFailedAttribute)
+      Some(List(dataRetrieveResult.hasFailed.contains(true).toString))
+    else
+      dataRetrieveResult.data match {
+        case RetrieveDataType.ObjectType(map) => map.get(dataRetrieveCtx.attribute).map(List(_))
+        case RetrieveDataType.ListType(xs)    => xs.traverse(_.get(dataRetrieveCtx.attribute))
+      }
 
   def getDataRetrieveAddressAttribute(
     dataRetrieve: Map[DataRetrieveId, DataRetrieveResult],
@@ -85,7 +88,7 @@ object DataRetrieveEval {
 
     def getResult(id: DataRetrieveId): Option[EvaluationStatus] = dataRetrieve
       .get(id)
-      .map { case DataRetrieveResult(_, data, _, _, _, _) =>
+      .map { case DataRetrieveResult(_, data, _, _, _, _, _) =>
         data match {
           case RetrieveDataType.ObjectType(row) => getAddressResult(row)
           case RetrieveDataType.ListType(xs) =>

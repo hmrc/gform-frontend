@@ -129,7 +129,8 @@ class CompanyInformationConnectorSpec
           urlPath = "/company/{{companyNumber}}",
           destination = UrlDestination.CompaniesHouse
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val dataRetrieveCompanyHouseActiveOfficers = DataRetrieve(
@@ -171,7 +172,8 @@ class CompanyInformationConnectorSpec
           urlPath = "/company/{{companyNumber}}/officers",
           destination = UrlDestination.CompaniesHouse
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val dataRetrieveCompanyHouseInsolvency =
@@ -267,7 +269,8 @@ class CompanyInformationConnectorSpec
             urlPath = "/company/{{companyNumber}}/insolvency",
             destination = UrlDestination.CompaniesHouse
           )
-        )
+        ),
+        manualFallbackIsDesigned = None
       )
 
     val request = DataRetrieve.Request(

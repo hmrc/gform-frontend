@@ -205,10 +205,11 @@ case class ThirdPartyData(
   )
 
   def updateDataRetrieve(dataRetrieveResult: List[DataRetrieveResult]): ThirdPartyData = dataRetrieveResult match {
-    case (drd @ DataRetrieveResult(id, _, _, _, _, _)) :: drs =>
+    case (drd @ DataRetrieveResult(id, _, _, _, _, _, _)) :: drs =>
       val updatedThirdPartyData = this.copy(dataRetrieve = dataRetrieve match {
-        case None      => Some(Map(id -> drd))
-        case Some(map) => Some(map + (id -> drd))
+        case None                                                        => Some(Map(id -> drd))
+        case Some(map) if map.get(id).exists(_.hasFailed.contains(true)) => Some(map)
+        case Some(map)                                                   => Some(map + (id -> drd))
       })
       updatedThirdPartyData.updateDataRetrieve(drs)
     case Nil => this
@@ -217,8 +218,9 @@ case class ThirdPartyData(
   def removeDataRetrieves(dataRetrieves: List[DataRetrieveId]): ThirdPartyData = dataRetrieves match {
     case (drId @ DataRetrieveId(_)) :: drs =>
       val updatedThirdPartyData = this.copy(dataRetrieve = dataRetrieve match {
-        case None      => None
-        case Some(map) => Some(map - drId)
+        case None                                                          => None
+        case Some(map) if map.get(drId).exists(_.hasFailed.contains(true)) => Some(map)
+        case Some(map)                                                     => Some(map - drId)
       })
       updatedThirdPartyData.removeDataRetrieves(drs)
     case Nil => this

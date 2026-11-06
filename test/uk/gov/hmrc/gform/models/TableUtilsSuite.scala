@@ -93,7 +93,8 @@ class TableUtilsSuite extends FunSuite with FormModelSupport with VariadicFormDa
             requestParams = play.api.libs.json.JsNull,
             failureCount = None,
             failureMaxAttempts = None,
-            failureCountResetTime = None
+            failureCountResetTime = None,
+            hasFailed = None
           )
         )
       )
