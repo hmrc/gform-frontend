@@ -102,7 +102,14 @@ class ApplicationModule(context: Context)
 
   private val graphiteModule = new GraphiteModule(environment, configuration, applicationLifecycle, metricsModule)
 
-  protected val auditingModule = new AuditingModule(configModule, akkaModule, graphiteModule, applicationLifecycle)
+  protected val auditingModule =
+    new AuditingModule(
+      configModule,
+      akkaModule,
+      graphiteModule,
+      applicationLifecycle,
+      gformStatsModule.gformStatsConnector
+    )
 
   private val mongoModule = new MongoModule(configModule)
 

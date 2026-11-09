@@ -21,6 +21,7 @@ import play.api.inject.ApplicationLifecycle
 import scala.concurrent.ExecutionContext
 import uk.gov.hmrc.gform.akka.AkkaModule
 import uk.gov.hmrc.gform.config.ConfigModule
+import uk.gov.hmrc.gform.gformstats.GformStatsConnector
 import uk.gov.hmrc.gform.metrics.GraphiteModule
 import uk.gov.hmrc.play.audit.{ DefaultAuditChannel, DefaultAuditConnector }
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -29,7 +30,8 @@ class AuditingModule(
   configModule: ConfigModule,
   akkaModule: AkkaModule,
   graphiteModule: GraphiteModule,
-  applicationLifecycle: ApplicationLifecycle
+  applicationLifecycle: ApplicationLifecycle,
+  statsConnector: => GformStatsConnector // the stats module is built after auditing
 )(implicit
   ec: ExecutionContext
 ) {
@@ -53,6 +55,7 @@ class AuditingModule(
 
   val auditService = new AuditService {
     override def auditConnector = self.auditConnector
+    override def gformStatsConnector = statsConnector
   }
 
   val httpAuditingService: HttpAuditingService = new HttpAuditingService(configModule.appConfig.appName, auditConnector)

@@ -351,8 +351,7 @@ class GformModule(
     gformBackEndService,
     ninoInsightsConnector,
     graphModule.smartStringEvaluatorFactory,
-    acknowledgementPdfService,
-    gformStatsModule.gformStatsConnector
+    acknowledgementPdfService
   )
 
   val reviewService = new ReviewService(gformBackEndService, lookupRegistry)
