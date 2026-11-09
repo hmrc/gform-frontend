@@ -785,7 +785,15 @@ class NewFormController(
       formIdData <- startFreshForm(cache.formTemplate._id, cache.retrievals, QueryParams.empty)
       _ <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
              val submissionRef = SubmissionRef.noCustomReference(cache.formTemplate, form.envelopeId)
-             auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef).pure[Future]
+             auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef)
+             gformStatsConnector
+               .sendEvent(
+                 cache.formTemplate._id.value,
+                 cache.formTemplate.formName.value(LangADT.En),
+                 "created",
+                 None
+               )
+               .pure[Future]
            }
       result <- processNewFormData(formIdData, drm)
     } yield result
