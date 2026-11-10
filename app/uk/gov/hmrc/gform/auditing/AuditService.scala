@@ -23,6 +23,7 @@ import uk.gov.hmrc.gform.addresslookup.PostcodeLookupRetrieve.AddressRecord
 import uk.gov.hmrc.gform.auth.models._
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.gform.CustomerId
+import uk.gov.hmrc.gform.gformstats.GformStatsConnector
 import uk.gov.hmrc.gform.models.ids.{ IndexedComponentId, ModelComponentId }
 import uk.gov.hmrc.gform.models.mappings.{ IRCT, IRSA, NINO, VATReg }
 import uk.gov.hmrc.gform.models.optics.FormModelVisibilityOptics
@@ -35,7 +36,7 @@ import uk.gov.hmrc.gform.sharedmodel.form.{ Form, FormData, ThirdPartyData }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.AuthInfo.ItmpDateOfBirth
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.DataRetrieveCtx
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, Expr, FormComponent, FormComponentId, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AuthCtx, Expr, FormComponent, FormComponentId, FormTemplate, IncludeIf, InformationMessage, IsAddress, IsInformationMessage, IsMiniSummaryList, IsOverseasAddress, MiniSummaryList, MiniSummaryListValue, MiniSummaryRow }
 import uk.gov.hmrc.gform.sharedmodel.{ AffinityGroupUtil, LangADT, SmartString, SubmissionRef, VariadicValue }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -49,6 +50,8 @@ trait AuditService {
   def logger: Logger = LoggerFactory.getLogger("uk.gov.hmrc.gform.auditing.AuditService")
 
   def auditConnector: AuditConnector
+
+  def gformStatsConnector: GformStatsConnector
 
   def getUserValues(
     thirdPartyData: ThirdPartyData,
@@ -384,9 +387,10 @@ trait AuditService {
 
   def sendFormCreateEvent(
     form: Form,
+    formTemplate: FormTemplate,
     retrievals: MaterialisedRetrievals,
     submissionRef: Option[SubmissionRef]
-  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit =
+  )(implicit ec: ExecutionContext, hc: HeaderCarrier, lang: LangADT): Unit = {
     sendEvent(
       "formCreated",
       form,
@@ -398,6 +402,13 @@ trait AuditService {
       List.empty,
       submissionRef
     )
+    gformStatsConnector.sendEvent(
+      formTemplate._id.value,
+      formTemplate.formName.value(LangADT.En),
+      "created",
+      None
+    )
+  }
 
   def sendFormResumeEvent(
     form: Form,

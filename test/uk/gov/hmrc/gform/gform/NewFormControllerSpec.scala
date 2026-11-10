@@ -39,7 +39,6 @@ import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
-import uk.gov.hmrc.gform.gformstats.GformStatsConnector
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
 import uk.gov.hmrc.gform.models._
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
@@ -500,7 +499,6 @@ class NewFormControllerSpec
     lazy val mockGformBackend: GformBackEndAlgebra[Future] = mock[GformBackEndAlgebra[Future]]
     lazy val mockNinoInsightsConnector: NinoInsightsConnector[Future] = mock[NinoInsightsConnector[Future]]
     lazy val mockAcknowledgementPdfService: AcknowledgementPdfService = mock[AcknowledgementPdfService]
-    lazy val mockGformStatsConnector: GformStatsConnector = mock[GformStatsConnector]
 
     lazy val smartStringEvaluatorFactory: SmartStringEvaluatorFactory = new RealSmartStringEvaluatorFactory(messages)
 
@@ -523,8 +521,7 @@ class NewFormControllerSpec
         mockGformBackend,
         mockNinoInsightsConnector,
         smartStringEvaluatorFactory,
-        mockAcknowledgementPdfService,
-        mockGformStatsConnector
+        mockAcknowledgementPdfService
       )
 
     private def toFormFields(xs: List[(String, String)]): List[FormField] = xs.map { case (fcId, value) =>

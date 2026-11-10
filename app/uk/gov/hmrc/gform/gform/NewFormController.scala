@@ -37,7 +37,6 @@ import uk.gov.hmrc.gform.eval.InitFormEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluatorFactory
 import uk.gov.hmrc.gform.gform.SessionUtil.jsonFromSession
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
-import uk.gov.hmrc.gform.gformstats.GformStatsConnector
 import uk.gov.hmrc.gform.models.{ AccessCodePage, SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel.LangADT.En
@@ -68,8 +67,7 @@ class NewFormController(
   gformBackEnd: GformBackEndAlgebra[Future],
   ninoInsightsConnector: NinoInsightsConnector[Future],
   smartStringEvaluatorFactory: SmartStringEvaluatorFactory,
-  acknowledgementPdfService: AcknowledgementPdfService,
-  gformStatsConnector: GformStatsConnector
+  acknowledgementPdfService: AcknowledgementPdfService
 )(implicit ec: ExecutionContext)
     extends FrontendController(messagesControllerComponents) {
   import i18nSupport._
@@ -578,13 +576,7 @@ class NewFormController(
       res <- maybeFormTemplate.fold(notFound(formIdData)) { formTemplate =>
                handleForm(formIdData, formTemplate)(notFound(formIdData)) { form =>
                  val submissionRef = SubmissionRef.noCustomReference(formTemplate, form.envelopeId)
-                 auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef)
-                 gformStatsConnector.sendEvent(
-                   formTemplateId.value,
-                   formTemplate.formName.value(LangADT.En),
-                   "created",
-                   None
-                 )
+                 auditService.sendFormCreateEvent(form, formTemplate, cache.retrievals, submissionRef)
                  redirectContinue[SectionSelectorType.Normal](
                    cache.copy(formTemplate = formTemplate),
                    form,
@@ -785,7 +777,7 @@ class NewFormController(
       formIdData <- startFreshForm(cache.formTemplate._id, cache.retrievals, QueryParams.empty)
       _ <- handleForm(formIdData, cache.formTemplate)(notFound(formIdData)) { form =>
              val submissionRef = SubmissionRef.noCustomReference(cache.formTemplate, form.envelopeId)
-             auditService.sendFormCreateEvent(form, cache.retrievals, submissionRef).pure[Future]
+             auditService.sendFormCreateEvent(form, cache.formTemplate, cache.retrievals, submissionRef).pure[Future]
            }
       result <- processNewFormData(formIdData, drm)
     } yield result
