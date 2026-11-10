@@ -92,6 +92,7 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
       ("input", "expected"),
       ("""@## Heading (h2) #""", """<h2 class="govuk-heading-l">Heading (h2)</h2>"""),
       ("""@## \#Heading (h2) #""", """<h2 class="govuk-heading-l">#Heading (h2)</h2>"""),
+      ("""@##Heading (h2) #""", """<h2 class="govuk-heading-l">Heading (h2)</h2>"""),
       (
         """1. Total is 1\.00 and 2\.00""",
         """<ol class="govuk-list govuk-list--number">

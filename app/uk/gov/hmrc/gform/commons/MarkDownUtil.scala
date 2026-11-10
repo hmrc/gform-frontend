@@ -165,7 +165,7 @@ object MarkDownUtil {
       .map { line =>
         // Add space after line start #(s) for headings if missing (this appears to now
         // mandated by the markdown HTML generator)
-        line.replaceFirst("^(#+)(\\w)", "$1 $2")
+        line.replaceFirst("^(@?#+)(\\w)", "$1 $2")
       }
       .mkString("\n")
 }
