@@ -49,7 +49,6 @@ class PdfGeneratorService(environment: Environment) {
     try {
       val w3cDom = new W3CDom().fromJsoup(Jsoup.parse(content))
       val builder = new PdfRendererBuilder()
-      builder.useFastMode()
       builder.usePdfUaAccessibility(true)
       builder.usePdfAConformance(PdfRendererBuilder.PdfAConformance.PDFA_3_U)
       builder.useFont(() => environment.classLoader.getResourceAsStream("arial.ttf"), "Arial")

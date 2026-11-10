@@ -78,7 +78,7 @@ class DependencyGraphSuite extends FunSuite {
       FormModelOpticsTests2.data ++
       FormModelOpticsTests3.data ++
       FormModelOpticsTests4.data
-  ).zipWithIndex.map {
+  ).zipWithIndex.foreach {
     case (
           (
             mongoUserData,

@@ -1217,7 +1217,8 @@ object FormModelOpticsTests1 extends DependencyGraphFixture {
            | <li>
            |  <ul class="govuk-list govuk-list--bullet">
            |   <li>1 January 2023</li>
-           |  </ul></li>
+           |  </ul>
+           | </li>
            |</ol>""".stripMargin,
         "210.82 - 1 January 2024",
         "2. 210.82 - 1 January 2024",
@@ -4139,14 +4140,16 @@ object FormModelOpticsTests1 extends DependencyGraphFixture {
            | <li>
            |  <ul class="govuk-list govuk-list--bullet">
            |   <li>5 May 2005.</li>
-           |  </ul></li>
+           |  </ul>
+           | </li>
            |</ol>""".stripMargin,
         "4.  - .",
         """|<ol start="4" class="govuk-list govuk-list--number">
            | <li>
            |  <ul class="govuk-list govuk-list--bullet">
            |   <li>.</li>
-           |  </ul></li>
+           |  </ul>
+           | </li>
            |</ol>""".stripMargin,
         "5. 7 July 2007 - 8 August 2008.",
         """|<ol start="5" class="govuk-list govuk-list--number">

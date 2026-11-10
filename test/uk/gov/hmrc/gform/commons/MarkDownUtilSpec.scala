@@ -55,7 +55,7 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
     }
   }
 
-  "markDownParser" should "convert markdown text to HTML, handling special characters" in {
+  "markDownParser" should "convert markdown text to HTML, handling special characters and incorrect heading markdown" in {
     val data = Table(
       ("input", "expected"),
       ("""## Heading (h2) #""", """<h2 class="govuk-heading-m">Heading (h2)</h2>"""),
@@ -65,6 +65,21 @@ class MarkDownUtilSpec extends Spec with TableDrivenPropertyChecks {
         """<ol class="govuk-list govuk-list--number">
           | <li>Total is 1.00 and 2.00</li>
           |</ol>""".stripMargin
+      ),
+      ("""#Now send your form""", """<h1 class="govuk-heading-l">Now send your form</h1>"""),
+      ("""##Now send your form""", """<h2 class="govuk-heading-m">Now send your form</h2>"""),
+      ("""##Now send your #form""", """<h2 class="govuk-heading-m">Now send your #form</h2>"""),
+      ("""##Now send your \#form""", """<h2 class="govuk-heading-m">Now send your #form</h2>"""),
+      ("""## Now send your #form""", """<h2 class="govuk-heading-m">Now send your #form</h2>"""),
+      (
+        "##Now send your \n#form",
+        """<h2 class="govuk-heading-m">Now send your</h2>
+          |<h1 class="govuk-heading-l">form</h1>""".stripMargin
+      ),
+      (
+        "##Now send your \n\\#form",
+        """<h2 class="govuk-heading-m">Now send your</h2>
+          |<p>#form</p>""".stripMargin
       )
     )
     forAll(data) { (input, expected) =>

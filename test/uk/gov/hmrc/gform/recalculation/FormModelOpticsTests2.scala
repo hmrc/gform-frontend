@@ -2250,18 +2250,28 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
            |address with county: Line 1, Line 2, Town, County, AA11 1AA
            |
            |international address: Street 1, Street 2, Street 3, France""".stripMargin,
-        """|<p>address: Line 1<br>
-           | Line 2<br>
-           | Town<br>
+        """|<p>address: Line 1
+           | <br>
+           | Line 2
+           | <br>
+           | Town
+           | <br>
            | AA11 1AA</p>
-           |<p>address with county: Line 1<br>
-           | Line 2<br>
-           | Town<br>
-           | County<br>
+           |<p>address with county: Line 1
+           | <br>
+           | Line 2
+           | <br>
+           | Town
+           | <br>
+           | County
+           | <br>
            | AA11 1AA</p>
-           |<p>international address: Street 1<br>
-           | Street 2<br>
-           | Street 3<br>
+           |<p>international address: Street 1
+           | <br>
+           | Street 2
+           | <br>
+           | Street 3
+           | <br>
            | France</p>""".stripMargin
       ),
       "address.json Generated"
@@ -2333,27 +2343,40 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "AAA, BBB, CCC, DD11 1DD",
         "Address 1: AAA, BBB, CCC, DD11 1DD",
-        """|<p>Address 1: AAA<br>
-           | BBB<br>
-           | CCC<br>
+        """|<p>Address 1: AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
            | DD11 1DD</p>""".stripMargin,
         "",
         "Address 2: ",
         "<p>Address 2:</p>",
         "EEE, FFF, GGG, HH11 1HH",
         "Address 3: EEE, FFF, GGG, HH11 1HH",
-        """|<p>Address 3: EEE<br>
-           | FFF<br>
-           | GGG<br>
+        """|<p>Address 3: EEE
+           | <br>
+           | FFF
+           | <br>
+           | GGG
+           | <br>
            | HH11 1HH</p>""".stripMargin,
         "all addresses: AAA, BBB, CCC, DD11 1DD, EEE, FFF, GGG, HH11 1HH",
-        """|<p>all addresses: AAA<br>
-           | BBB<br>
-           | CCC<br>
-           | DD11 1DD<br>
-           | EEE<br>
-           | FFF<br>
-           | GGG<br>
+        """|<p>all addresses: AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
+           | DD11 1DD
+           | <br>
+           | EEE
+           | <br>
+           | FFF
+           | <br>
+           | GGG
+           | <br>
            | HH11 1HH</p>""".stripMargin
       ),
       "address-atl.json one address in atl is visible"
@@ -2451,9 +2474,12 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
            |Address is (=) visible
            |
            |Address is (!=) visible""".stripMargin,
-        """|<p>Address: 'AAA<br>
-           | BBB<br>
-           | CCC<br>
+        """|<p>Address: 'AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
            | DD11 1DD'</p>
            |<p>Address is (=) visible</p>
            |<p>Address is (!=) visible</p>""".stripMargin
@@ -2521,11 +2547,16 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "Test AAA, BBB, CCC, DDD, EEE, Czech Republic",
         "overseas address: AAA, BBB, CCC, DDD, EEE, Czech Republic",
-        """|<p>overseas address: AAA<br>
-           | BBB<br>
-           | CCC<br>
-           | DDD<br>
-           | EEE<br>
+        """|<p>overseas address: AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
+           | DDD
+           | <br>
+           | EEE
+           | <br>
            | Czech Republic</p>""".stripMargin
       ),
       "overseas-address.json Generated"
@@ -2565,11 +2596,16 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
            |Overseas address is (=) visible
            |
            |Overseas address is (!=) visible""".stripMargin,
-        """|<p>Overseas address: 'AAA<br>
-           | BBB<br>
-           | CCC<br>
-           | DDD<br>
-           | EEE<br>
+        """|<p>Overseas address: 'AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
+           | DDD
+           | <br>
+           | EEE
+           | <br>
            | France'</p>
            |<p>Overseas address is (=) visible</p>
            |<p>Overseas address is (!=) visible</p>""".stripMargin
@@ -2678,35 +2714,56 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "AAA, BBB, CCC, DDD, EEE, France",
         "Address 1: AAA, BBB, CCC, DDD, EEE, France",
-        """|<p>Address 1: AAA<br>
-           | BBB<br>
-           | CCC<br>
-           | DDD<br>
-           | EEE<br>
+        """|<p>Address 1: AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
+           | DDD
+           | <br>
+           | EEE
+           | <br>
            | France</p>""".stripMargin,
         "GGG, HHH, III, JJJ, KKK, Luxembourg",
         "Address 2: GGG, HHH, III, JJJ, KKK, Luxembourg",
-        """|<p>Address 2: GGG<br>
-           | HHH<br>
-           | III<br>
-           | JJJ<br>
-           | KKK<br>
+        """|<p>Address 2: GGG
+           | <br>
+           | HHH
+           | <br>
+           | III
+           | <br>
+           | JJJ
+           | <br>
+           | KKK
+           | <br>
            | Luxembourg</p>""".stripMargin,
         "",
         "Address 3: ",
         "<p>Address 3:</p>",
         "all addresses: AAA, BBB, CCC, DDD, EEE, France, GGG, HHH, III, JJJ, KKK, Luxembourg",
-        """|<p>all addresses: AAA<br>
-           | BBB<br>
-           | CCC<br>
-           | DDD<br>
-           | EEE<br>
-           | France<br>
-           | GGG<br>
-           | HHH<br>
-           | III<br>
-           | JJJ<br>
-           | KKK<br>
+        """|<p>all addresses: AAA
+           | <br>
+           | BBB
+           | <br>
+           | CCC
+           | <br>
+           | DDD
+           | <br>
+           | EEE
+           | <br>
+           | France
+           | <br>
+           | GGG
+           | <br>
+           | HHH
+           | <br>
+           | III
+           | <br>
+           | JJJ
+           | <br>
+           | KKK
+           | <br>
            | Luxembourg</p>""".stripMargin
       ),
       "overseas-address-atl.json two addresses in atl are visible"
@@ -2813,8 +2870,10 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "Test 2 Testing Lane, Royal Madeuptown, ZZ9Z 9TT",
         "postcodeLookup: 2 Testing Lane, Royal Madeuptown, ZZ9Z 9TT",
-        """|<p>postcodeLookup: 2 Testing Lane<br>
-           | Royal Madeuptown<br>
+        """|<p>postcodeLookup: 2 Testing Lane
+           | <br>
+           | Royal Madeuptown
+           | <br>
            | ZZ9Z 9TT</p>""".stripMargin
       ),
       "postcode-lookup.json Generated"
@@ -2864,8 +2923,10 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
            |Postcode lookup is (=) visible
            |
            |Postcode lookup is (!=) visible""".stripMargin,
-        """|<p>Postcode lookup: '2 Testing Lane<br>
-           | Royal Madeuptown<br>
+        """|<p>Postcode lookup: '2 Testing Lane
+           | <br>
+           | Royal Madeuptown
+           | <br>
            | ZZ9Z 9TT'</p>
            |<p>Postcode lookup is (=) visible</p>
            |<p>Postcode lookup is (!=) visible</p>""".stripMargin
@@ -2992,25 +3053,36 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "2 Testing Lane, Royal Madeuptown, ZZ9Z 9TT",
         "Postcode lookup 1: 2 Testing Lane, Royal Madeuptown, ZZ9Z 9TT",
-        """|<p>Postcode lookup 1: 2 Testing Lane<br>
-           | Royal Madeuptown<br>
+        """|<p>Postcode lookup 1: 2 Testing Lane
+           | <br>
+           | Royal Madeuptown
+           | <br>
            | ZZ9Z 9TT</p>""".stripMargin,
         "",
         "Postcode lookup 2: ",
         "<p>Postcode lookup 2:</p>",
         "3 Other Place, Some District, Anytown, FX1A 7GA",
         "Postcode lookup 3: 3 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>Postcode lookup 3: 3 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>Postcode lookup 3: 3 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin,
         "all addresses: 2 Testing Lane, Royal Madeuptown, ZZ9Z 9TT, 3 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>all addresses: 2 Testing Lane<br>
-           | Royal Madeuptown<br>
-           | ZZ9Z 9TT<br>
-           | 3 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>all addresses: 2 Testing Lane
+           | <br>
+           | Royal Madeuptown
+           | <br>
+           | ZZ9Z 9TT
+           | <br>
+           | 3 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin
       ),
       "postcode-lookup-atl.json two postcode lookups are visible"
@@ -3176,11 +3248,16 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       ),
       List(
         "itmp address: Line 1, Line 2, Line 3, Line 4 Line 5, AA111AA, France",
-        """|<p>itmp address: Line 1<br>
-           | Line 2<br>
-           | Line 3<br>
-           | Line 4 Line 5<br>
-           | AA111AA<br>
+        """|<p>itmp address: Line 1
+           | <br>
+           | Line 2
+           | <br>
+           | Line 3
+           | <br>
+           | Line 4 Line 5
+           | <br>
+           | AA111AA
+           | <br>
            | France</p>""".stripMargin
       ),
       "itmp-address.json overseas address prepopulation"
@@ -3239,10 +3316,14 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       ),
       List(
         "itmp address: Line 1, Line 2, Line 3, Line 4 Line 5, AA111AA",
-        """|<p>itmp address: Line 1<br>
-           | Line 2<br>
-           | Line 3<br>
-           | Line 4 Line 5<br>
+        """|<p>itmp address: Line 1
+           | <br>
+           | Line 2
+           | <br>
+           | Line 3
+           | <br>
+           | Line 4 Line 5
+           | <br>
            | AA111AA</p>""".stripMargin
       ),
       "itmp-address.json uk address prepopulation"
@@ -3298,10 +3379,14 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "Enter date and ninos ''",
         "dataRetrieve.agencyInfo: Plaza 2, Ironmasters Way, Telford, Shropshire, TF3 4NT",
-        """|<p>dataRetrieve.agencyInfo: Plaza 2<br>
-           | Ironmasters Way<br>
-           | Telford<br>
-           | Shropshire<br>
+        """|<p>dataRetrieve.agencyInfo: Plaza 2
+           | <br>
+           | Ironmasters Way
+           | <br>
+           | Telford
+           | <br>
+           | Shropshire
+           | <br>
            | TF3 4NT</p>""".stripMargin
       ),
       "data-retrieve-agent-details.json uk address"
@@ -3359,11 +3444,16 @@ object FormModelOpticsTests2 extends DependencyGraphFixture {
       List(
         "Enter date and ninos 'US'",
         "dataRetrieve.agencyInfo: Plaza 2, Sunset Boulevard, Miami, Florida, 750075, US",
-        """|<p>dataRetrieve.agencyInfo: Plaza 2<br>
-           | Sunset Boulevard<br>
-           | Miami<br>
-           | Florida<br>
-           | 750075<br>
+        """|<p>dataRetrieve.agencyInfo: Plaza 2
+           | <br>
+           | Sunset Boulevard
+           | <br>
+           | Miami
+           | <br>
+           | Florida
+           | <br>
+           | 750075
+           | <br>
            | US</p>""".stripMargin
       ),
       "data-retrieve-agent-details.json non uk address"
