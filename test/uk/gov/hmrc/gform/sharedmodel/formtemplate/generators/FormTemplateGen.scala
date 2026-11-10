@@ -31,7 +31,7 @@ trait FormTemplateGen {
   def legacyFromIdListGen: Gen[Option[NonEmptyList[FormTemplateId]]] =
     Gen.option(PrimitiveGen.oneOrMoreGen(PrimitiveGen.nonEmptyAlphaNumStrGen.map(FormTemplateId(_))))
   def formNameGen: Gen[LocalisedString] = LocalisedStringGen.localisedStringGen
-  def phaseBannerGen: Gen[DevelopmentPhase] =
+  def phaseBannerGen: Gen[PhaseBanner] =
     Gen.oneOf(AlphaBanner, BetaBanner, DiscoveryBanner, LiveBanner)
   def formCategoryGen: Gen[FormCategory] = Gen.oneOf(HMRCReturnForm, HMRCClaimForm, Default)
 
