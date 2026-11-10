@@ -107,7 +107,7 @@ class ChoiceRuntimeIndexService {
 
   private def searchByTerms(searcher: IndexSearcher, searchQuery: String): List[ChoiceSearchResult] = {
     val query = if (searchQuery.isEmpty) {
-      new MatchAllDocsQuery()
+      MatchAllDocsQuery.INSTANCE
     } else {
       val terms = searchQuery.split("\\s+").filter(_.nonEmpty)
 

@@ -429,7 +429,8 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
       ),
       List(
         "item.sum £0.00 <br/>itemPlusOne.sum: £0.00",
-        """|<p>item.sum £0.00 <br>
+        """|<p>item.sum £0.00
+           | <br>
            | itemPlusOne.sum: £0.00</p>""".stripMargin
       ),
       "atl-hidden-sum-outside.json Generated"
@@ -464,7 +465,8 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
         "2 - £1.00",
         "<p>2 - £1.00</p>",
         "item.sum £1.00 <br/>itemPlusOne.sum: £3.00",
-        """|<p>item.sum £1.00 <br>
+        """|<p>item.sum £1.00
+           | <br>
            | itemPlusOne.sum: £3.00</p>""".stripMargin
       ),
       "atl-hidden-item-sum-outside.json Generated"
@@ -2571,9 +2573,12 @@ object FormModelOpticsTests4 extends DependencyGraphFixture {
       ),
       List(
         "intensiveQEtotal: £17,316.00<br/>intensiveTotalSpend: £22,815.00<br/>intensivePercentage: 75.8<br/>intensivePercentageConcat: 75.8%",
-        """|<p>intensiveQEtotal: £17,316.00<br>
-           | intensiveTotalSpend: £22,815.00<br>
-           | intensivePercentage: 75.8<br>
+        """|<p>intensiveQEtotal: £17,316.00
+           | <br>
+           | intensiveTotalSpend: £22,815.00
+           | <br>
+           | intensivePercentage: 75.8
+           | <br>
            | intensivePercentageConcat: 75.8%</p>""".stripMargin
       ),
       "concat-typed-number-expression.json Generated"

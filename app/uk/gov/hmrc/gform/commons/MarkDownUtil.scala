@@ -17,10 +17,11 @@
 package uk.gov.hmrc.gform.commons
 
 import cats.implicits._
+import org.intellij.markdown.IElementType
 import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.entities.EntityConverter
-import org.intellij.markdown.parser.MarkdownParser
+import org.intellij.markdown.parser.{ CancellationToken, MarkdownParser }
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import play.twirl.api.Html
@@ -34,6 +35,8 @@ object MarkDownUtil {
 
   private val markdownControlCharacters =
     List("\\", "/", "`", "*", "_", "{", "}", "[", "]", "(", ")", "#", "+", "-", ".", "!")
+
+  private val acknowledgementHeaderPattern = "(@####|@###|@##|@#)".r
 
   private def addTargetToLinks(doc: Document) = {
     val links = doc.getElementsByAttribute("href")
@@ -69,8 +72,12 @@ object MarkDownUtil {
     doc
   }
 
-  private def addDefaultClassesToHeaders(doc: Document) = {
-    val headings = Seq("h1" -> "govuk-heading-l", "h2" -> "govuk-heading-m", "h3" -> "govuk-heading-s")
+  private def addDefaultClassesToHeaders(doc: Document, renderLargerHeaders: Boolean) = {
+    val headings =
+      if (renderLargerHeaders)
+        Seq("h1" -> "govuk-heading-xl", "h2" -> "govuk-heading-l", "h3" -> "govuk-heading-m", "h4" -> "govuk-heading-s")
+      else
+        Seq("h1" -> "govuk-heading-l", "h2" -> "govuk-heading-m", "h3" -> "govuk-heading-s")
 
     headings.foreach { case (tag, className) =>
       val element = doc.select(tag)
@@ -81,38 +88,40 @@ object MarkDownUtil {
     doc
   }
 
-  private def enhanceHtml(html: String): String = {
+  private def enhanceHtml(html: String, renderLargerHeaders: Boolean): String = {
     val doc: Document = Jsoup.parse(html)
     addTargetToLinks(doc)
     addDefaultClassesToLists(doc)
-    addDefaultClassesToHeaders(doc)
+    addDefaultClassesToHeaders(doc, renderLargerHeaders)
     doc.body().html()
   }
 
-  private def replaceHashesForAcknowledgementSection(input: String): String =
-    input
-      .split("\n")
-      .map { line =>
-        val pattern = "(@####|@###|@##|@#)".r
-        val index = pattern.findFirstIn(line).map(line.indexOf).getOrElse(-1)
+  private def replaceHashesForAcknowledgementSection(input: String): (Boolean, CharSequence) =
+    (
+      acknowledgementHeaderPattern.findFirstIn(input).isDefined,
+      input
+        .split("\n")
+        .map { line =>
+          val index = acknowledgementHeaderPattern.findFirstIn(line).map(line.indexOf).getOrElse(-1)
 
-        if (index =!= -1) {
-          val matchedLength = pattern.findFirstIn(line).getOrElse("").length
-          val text = line.substring(index + matchedLength).replaceAll("#*$", "")
+          if (index =!= -1) {
+            val matchedLength = acknowledgementHeaderPattern.findFirstIn(line).getOrElse("").length
+            val text = line.substring(index + matchedLength).replaceAll("#*$", "")
 
-          val classIndex = matchedLength - 1
-          classIndex match {
-            case 1 => s"""<h1 class="govuk-heading-xl">$text</h1>"""
-            case 2 => s"""<h2 class="govuk-heading-l">$text</h2>"""
-            case 3 => s"""<h3 class="govuk-heading-m">$text</h3>"""
-            case 4 => s"""<h4 class="govuk-heading-s">$text</h4>"""
-            case _ => s"""$text"""
+            val classIndex = matchedLength - 1
+            classIndex match {
+              case 1 => s"""# $text"""
+              case 2 => s"""## $text"""
+              case 3 => s"""### $text"""
+              case 4 => s"""#### $text"""
+              case _ => s"""$text"""
+            }
+          } else {
+            line
           }
-        } else {
-          line
         }
-      }
-      .mkString("\n")
+        .mkString("\n")
+    )
 
   def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
 
@@ -123,11 +132,16 @@ object MarkDownUtil {
 
   def markDownParser(markDownText0: String): Html = {
     val normalizedMarkdownText = markDownText0.trim.replaceAll(" +", " ")
-    val markDownText = replaceHashesForAcknowledgementSection(normalizedMarkdownText)
+    val (renderLargerHeaders, markDownText) = replaceHashesForAcknowledgementSection(normalizedMarkdownText)
     val flavour = new GFMFlavourDescriptor
-    val parsedTree = new MarkdownParser(flavour).buildMarkdownTreeFromString(markDownText)
-    val html = new HtmlGenerator(markDownText, parsedTree, flavour, false).generateHtml
-    Html(unescapeMarkdownHtml(enhanceHtml(html)))
+    val parsedTree =
+      new MarkdownParser(flavour, true, NonCancellable).parse(new IElementType("ROOT"), markDownText, true)
+    val tagRenderer = new HtmlGenerator.DefaultTagRenderer(
+      (_, _, attributes: java.lang.Iterable[_ <: CharSequence]) => attributes,
+      false
+    )
+    val html = new HtmlGenerator(markDownText.toString, parsedTree, flavour, false).generateHtml(tagRenderer)
+    Html(unescapeMarkdownHtml(enhanceHtml(html, renderLargerHeaders)))
   }
 
   def escapeMarkdown(s: String): String = {
@@ -147,4 +161,15 @@ object MarkDownUtil {
   def removeSpacesForStrong(s: String): String =
     // removing spaces after double asterisk (**) for bold <strong> markdown
     s.replaceAll("(\\*\\*+)\\s*(.*?)\\s*(\\*\\*+)", "$1$2$3")
+      .split("\n")
+      .map { line =>
+        // Add space after line start #(s) for headings if missing (this appears to now
+        // mandated by the markdown HTML generator)
+        line.replaceFirst("^(@?#+)(\\w)", "$1 $2")
+      }
+      .mkString("\n")
+}
+
+object NonCancellable extends CancellationToken {
+  override def checkCancelled(): Unit = ()
 }

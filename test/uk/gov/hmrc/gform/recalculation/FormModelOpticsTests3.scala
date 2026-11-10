@@ -3709,8 +3709,11 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
            |
            |First sentence.<br><br>Second sentence.<br>Third sentence.""".stripMargin,
         """|<p><strong>Details</strong></p>
-           |<p>First sentence.<br><br>
-           | Second sentence.<br>
+           |<p>First sentence.
+           | <br>
+           | <br>
+           | Second sentence.
+           | <br>
            | Third sentence.</p>""".stripMargin
       ),
       "display-as-entered.json Generated"
@@ -3759,8 +3762,10 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
         "You have added 1 room. Addresses count 0",
         "",
         "Room 1 rented in: 1 Testing Lane, Royal Madeuptown, ZZ9Z 9TT",
-        """|<p>Room 1 rented in: 1 Testing Lane<br>
-           | Royal Madeuptown<br>
+        """|<p>Room 1 rented in: 1 Testing Lane
+           | <br>
+           | Royal Madeuptown
+           | <br>
            | ZZ9Z 9TT</p>""".stripMargin
       ),
       "choice-dynamic-atl-based-adress.json room is in UK address"
@@ -3821,16 +3826,22 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
       List(
         "You have added 1 address",
         "10 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>10 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>10 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin,
         "You have added 1 room. Addresses count 1",
         "",
         "Room 1 rented in: 10 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>Room 1 rented in: 10 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>Room 1 rented in: 10 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin
       ),
       "choice-dynamic-atl-based-adress.json room is in other single address"
@@ -3907,27 +3918,39 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
       List(
         "You have added 2 addresses",
         "Flat 1, 7 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>Flat 1<br>
-           | 7 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>Flat 1
+           | <br>
+           | 7 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin,
         "You have added 2 addresses",
         "Flat 2, 7 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>Flat 2<br>
-           | 7 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>Flat 2
+           | <br>
+           | 7 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin,
         "Flat 1, 7 Other Place, Some District, Anytown, FX1A 7GA",
         "Flat 2, 7 Other Place, Some District, Anytown, FX1A 7GA",
         "You have added 1 room. Addresses count 2",
         "Flat 1, 7 Other Place, Some District, Anytown, FX1A 7GA",
         "Room 1 rented in: Flat 1, 7 Other Place, Some District, Anytown, FX1A 7GA",
-        """|<p>Room 1 rented in: Flat 1<br>
-           | 7 Other Place<br>
-           | Some District<br>
-           | Anytown<br>
+        """|<p>Room 1 rented in: Flat 1
+           | <br>
+           | 7 Other Place
+           | <br>
+           | Some District
+           | <br>
+           | Anytown
+           | <br>
            | FX1A 7GA</p>""".stripMargin
       ),
       "choice-dynamic-atl-based-adress.json room is in one of the other addresses"
