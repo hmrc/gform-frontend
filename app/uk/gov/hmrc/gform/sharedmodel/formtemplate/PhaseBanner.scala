@@ -19,12 +19,12 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import play.api.libs.json._
 import play.twirl.api.Html
 import uk.gov.hmrc.gform.views.components.SiteBanner
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ HtmlContent, PhaseBanner }
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ HtmlContent, PhaseBanner => GovukPhaseBanner }
 
-sealed trait DevelopmentPhase {
+sealed trait PhaseBanner {
   val banner: String
 
-  def toPhaseBanner(feedbackContent: Html): Option[PhaseBanner] = this match {
+  def toPhaseBanner(feedbackContent: Html): Option[GovukPhaseBanner] = this match {
     case AlphaBanner     => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
     case BetaBanner      => Some(SiteBanner(Some(banner), HtmlContent(feedbackContent)))
     case DiscoveryBanner => Some(SiteBanner(Some(banner)))
@@ -32,35 +32,35 @@ sealed trait DevelopmentPhase {
   }
 
 }
-case object AlphaBanner extends DevelopmentPhase {
+case object AlphaBanner extends PhaseBanner {
   override val banner: String = "Alpha"
 }
-case object BetaBanner extends DevelopmentPhase {
+case object BetaBanner extends PhaseBanner {
   override val banner: String = "Beta"
 }
-case object DiscoveryBanner extends DevelopmentPhase {
+case object DiscoveryBanner extends PhaseBanner {
   override val banner: String = "Discovery"
 }
-case object LiveBanner extends DevelopmentPhase {
+case object LiveBanner extends PhaseBanner {
   override val banner: String = "Live"
 }
-object DevelopmentPhase {
-  implicit val format: Format[DevelopmentPhase] = new Format[DevelopmentPhase] {
-    override def writes(o: DevelopmentPhase): JsValue = o match {
+object PhaseBanner {
+  implicit val format: Format[PhaseBanner] = new Format[PhaseBanner] {
+    override def writes(o: PhaseBanner): JsValue = o match {
       case AlphaBanner     => JsString(AlphaBanner.banner.toLowerCase)
       case BetaBanner      => JsString(BetaBanner.banner.toLowerCase)
       case DiscoveryBanner => JsString(DiscoveryBanner.banner.toLowerCase)
       case LiveBanner      => JsString(LiveBanner.banner.toLowerCase)
     }
 
-    override def reads(json: JsValue): JsResult[DevelopmentPhase] =
+    override def reads(json: JsValue): JsResult[PhaseBanner] =
       json match {
         case JsString("alpha")     => JsSuccess(AlphaBanner)
         case JsString("beta")      => JsSuccess(BetaBanner)
         case JsString("discovery") => JsSuccess(DiscoveryBanner)
         case JsString("live")      => JsSuccess(LiveBanner)
         case JsString(err) =>
-          JsError(s"only valid DevelopmentPhase values are alpha, beta, discovery or live. $err is not allowed")
+          JsError(s"only valid PhaseBanner values are alpha, beta, discovery or live. $err is not allowed")
         case _ => JsError("Failure")
       }
   }

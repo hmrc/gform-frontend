@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.gform.sharedmodel.formtemplate
 
+import play.api.libs.json.JsString
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.generators.FormTemplateGen
 
@@ -23,6 +24,17 @@ class FormTemplateSpec extends Spec {
   "FormTemplate" should "round trip derived JSON" in {
     forAll(FormTemplateGen.formTemplateGen) { template =>
       FormTemplate.format.reads(FormTemplate.format.writes(template)) should beJsSuccess(template)
+    }
+  }
+
+  it should "read and write the phaseBanner JSON field" in {
+    forAll(FormTemplateGen.formTemplateGen) { template =>
+      val templateWithBanner = template.copy(phaseBanner = Some(DiscoveryBanner))
+      val json = FormTemplate.format.writes(templateWithBanner)
+
+      (json \ "phaseBanner").get shouldBe JsString("discovery")
+      json.keys should not contain "developmentPhase"
+      FormTemplate.format.reads(json) should beJsSuccess(templateWithBanner)
     }
   }
 }

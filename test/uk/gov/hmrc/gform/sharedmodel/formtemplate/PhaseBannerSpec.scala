@@ -19,13 +19,13 @@ package uk.gov.hmrc.gform.sharedmodel.formtemplate
 import munit.FunSuite
 import play.api.libs.json.{ JsString, JsSuccess }
 
-class DevelopmentPhaseSpec extends FunSuite {
-  test("DevelopmentPhase should read and write discovery") {
-    assertEquals(DevelopmentPhase.format.reads(JsString("discovery")), JsSuccess[DevelopmentPhase](DiscoveryBanner))
-    assertEquals(DevelopmentPhase.format.writes(DiscoveryBanner), JsString("discovery"))
+class PhaseBannerSpec extends FunSuite {
+  test("PhaseBanner should read and write discovery") {
+    assertEquals(PhaseBanner.format.reads(JsString("discovery")), JsSuccess[PhaseBanner](DiscoveryBanner))
+    assertEquals(PhaseBanner.format.writes(DiscoveryBanner), JsString("discovery"))
   }
 
-  test("DevelopmentPhase should reject research") {
-    assertEquals(DevelopmentPhase.format.reads(JsString("research")).isError, true)
+  test("PhaseBanner should reject research") {
+    assertEquals(PhaseBanner.format.reads(JsString("research")).isError, true)
   }
 }

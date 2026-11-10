@@ -37,7 +37,7 @@ trait FormTemplateSample {
     version = FormTemplateVersion(1),
     legacyFormIds = None,
     formName = LocalisedString(Map(LangADT.En -> "Form with email auth")),
-    developmentPhase = None,
+    phaseBanner = None,
     webChat = None,
     draftRetrievalMethod = OnePerUser(ContinueOrDeletePage.Show),
     draftRetrieval = None,
