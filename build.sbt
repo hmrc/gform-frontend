@@ -1,4 +1,4 @@
-import Dependencies.appDependencies
+import Dependencies.{ appDependencies, appDependencyOverrides }
 import play.sbt.routes.RoutesKeys.routesImport
 import uk.gov.hmrc.DefaultBuildSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
@@ -37,6 +37,7 @@ lazy val microservice = (project in file("."))
       .toSet
       .toSeq, // get rid of duplicates
     libraryDependencies ++= appDependencies,
+    dependencyOverrides ++= appDependencyOverrides,
     routesImport ++= Seq(
       "uk.gov.hmrc.gform.binders.ValueClassBinder._",
       "uk.gov.hmrc.gform.controllers.Direction",
