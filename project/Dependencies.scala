@@ -70,4 +70,8 @@ object Dependencies {
     "com.vladsch.flexmark"    % "flexmark-all"            % "0.64.8"            % Test,
     "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % hmrcMongoVersion    % Test
   )
+
+  val appDependencyOverrides: Seq[ModuleID] = Seq(
+    "org.typelevel" %% "jawn-parser" % "1.3.2"
+  )
 }
