@@ -16,329 +16,410 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import munit.FunSuite
+
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{ RETURNS_SELF, mock, when }
 import play.api.libs.json.{ JsValue, Json }
-import uk.gov.hmrc.gform.Spec
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Millis, Span }
+import uk.gov.hmrc.gform.sharedmodel.ExampleData
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.{ HttpClientV2, RequestBuilder }
 
+import java.net.URL
 import java.time.LocalDateTime
+import scala.concurrent.{ ExecutionContext, Future }
 
-class GformConnectorSpec extends Spec {
+class GformConnectorSpec extends FunSuite with Matchers with ScalaFutures {
+  implicit private val ec: ExecutionContext = ExecutionContext.global
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
 
-  behavior of "GformConnector.formTemplate - happy path"
-
-  it should "return form template for given type and version" in new Fixture {
-    val status = 200
-    val responseJson = Some(Json.toJson(buildFormTemplateContext))
-    connector
-      .getFormTemplateContext(formTemplateId)
-      .futureValue shouldBe buildFormTemplateContext
-  }
-
-  behavior of "GformConnector.formTemplate - unhappy scenario"
-
-  it should "it fails when formTemplate doesn't exist" in new Fixture {
-    val status = 404
-    val responseJson = None
-    val isUpstream404Response: Boolean = connector
-      .getFormTemplate(formTemplateId)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 404 => true
-      case _                                                                   => false
+  test("GformConnector.formTemplate - happy path should return form template for given type and version") {
+    new ConnectorFixture {
+      val status = 200
+      val responseJson = Some(Json.toJson(buildFormTemplateContext))
+      connector
+        .getFormTemplateContext(formTemplateId)
+        .futureValue shouldBe buildFormTemplateContext
     }
-    isUpstream404Response shouldBe true
   }
 
-  it should "it fails when gform returns 5xx" in new Fixture {
-    val status = 500
-    val responseJson = None
-    val isUpstream5xxResponse: Boolean = connector
-      .getFormTemplate(formTemplateId)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream5xxResponse(_) => true
-      case _                                            => false
+  test("GformConnector.formTemplate - unhappy scenario should it fails when formTemplate doesn't exist") {
+    new ConnectorFixture {
+      val status = 404
+      val responseJson = None
+      val isUpstream404Response: Boolean = connector
+        .getFormTemplate(formTemplateId)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 404 => true
+        case _                                                                   => false
+      }
+      isUpstream404Response shouldBe true
     }
-    isUpstream5xxResponse shouldBe true
   }
 
-  it should "it fails when gform returns BadRequest" in new Fixture {
-    val status = 400
-    val responseJson = None
-    val isUpstream400Response: Boolean = connector
-      .getFormTemplate(formTemplateId)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 400 => true
-      case _                                                                   => false
+  test("GformConnector.formTemplate - unhappy scenario should it fails when gform returns 5xx") {
+    new ConnectorFixture {
+      val status = 500
+      val responseJson = None
+      val isUpstream5xxResponse: Boolean = connector
+        .getFormTemplate(formTemplateId)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream5xxResponse(_) => true
+        case _                                            => false
+      }
+      isUpstream5xxResponse shouldBe true
     }
-    isUpstream400Response shouldBe true
   }
 
-  it should "it fails when gform returns 4xx code" in new Fixture {
-    val status = 401
-    val responseJson = None
-    val isUpstream4xxResponse: Boolean = connector
-      .getFormTemplate(formTemplateId)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(_) => true
-      case _                                            => false
+  test("GformConnector.formTemplate - unhappy scenario should it fails when gform returns BadRequest") {
+    new ConnectorFixture {
+      val status = 400
+      val responseJson = None
+      val isUpstream400Response: Boolean = connector
+        .getFormTemplate(formTemplateId)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 400 => true
+        case _                                                                   => false
+      }
+      isUpstream400Response shouldBe true
     }
-
-    isUpstream4xxResponse shouldBe true
   }
 
-  behavior of "GformConnector.form - happy path"
+  test("GformConnector.formTemplate - unhappy scenario should it fails when gform returns 4xx code") {
+    new ConnectorFixture {
+      val status = 401
+      val responseJson = None
+      val isUpstream4xxResponse: Boolean = connector
+        .getFormTemplate(formTemplateId)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(_) => true
+        case _                                            => false
+      }
 
-  it should "return form for given id" in new Fixture {
-    val status = 200
-    val responseJson = Some(Json.toJson(buildForm))
-    connector
-      .getForm(formIdData)
-      .futureValue shouldBe buildForm
-  }
-
-  behavior of "GformConnector.form - unhappy scenarios"
-
-  it should "it fails when form doesn't exist" in new Fixture {
-    val status = 404
-    val responseJson = None
-    val isUpstream404Response = connector
-      .getForm(formIdData)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 404 => true
-      case _                                                                   => false
+      isUpstream4xxResponse shouldBe true
     }
-    isUpstream404Response shouldBe true
   }
 
-  it should "it fails when gform returns 5xx" in new Fixture {
-    val status = 500
-    val responseJson = None
-    val isUpstream5xxResponse: Boolean = connector
-      .getForm(formIdData)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream5xxResponse(_) => true
-      case _                                            => false
+  test("GformConnector.form - happy path should return form for given id") {
+    new ConnectorFixture {
+      val status = 200
+      val responseJson = Some(Json.toJson(buildForm))
+      connector
+        .getForm(formIdData)
+        .futureValue shouldBe buildForm
     }
-    isUpstream5xxResponse shouldBe true
   }
 
-  it should "it fails when gform returns BadRequest" in new Fixture {
-    val status = 400
-    val responseJson = None
-    val isUpstream400Response: Boolean = connector
-      .getForm(formIdData)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 400 => true
-      case _                                                                   => false
+  test("GformConnector.form - unhappy scenarios should it fails when form doesn't exist") {
+    new ConnectorFixture {
+      val status = 404
+      val responseJson = None
+      val isUpstream404Response = connector
+        .getForm(formIdData)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 404 => true
+        case _                                                                   => false
+      }
+      isUpstream404Response shouldBe true
     }
-    isUpstream400Response shouldBe true
   }
 
-  it should "it fails when gform returns 4xx code" in new Fixture {
-    val status = 401
-    val responseJson = None
-    val isUpstream4xxResponse: Boolean = connector
-      .getForm(formIdData)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(_) => true
-      case _                                            => false
+  test("GformConnector.form - unhappy scenarios should it fails when gform returns 5xx") {
+    new ConnectorFixture {
+      val status = 500
+      val responseJson = None
+      val isUpstream5xxResponse: Boolean = connector
+        .getForm(formIdData)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream5xxResponse(_) => true
+        case _                                            => false
+      }
+      isUpstream5xxResponse shouldBe true
     }
-    isUpstream4xxResponse shouldBe true
   }
 
-  behavior of "GformConnector.createSubmission - successful scenario"
-
-  it should "create submission and return the Submission entity" in new Fixture {
-    val status = 200
-    implicit val localDateTime: LocalDateTime = LocalDateTime.now()
-    val responseJson = Some(Json.toJson(submission))
-    connector
-      .createSubmission(
-        formIdData.toFormId,
-        formTemplateId,
-        envelopeId,
-        "some-customer-id",
-        1,
-        submissionRef
-      )
-      .futureValue shouldBe submission
-  }
-
-  it should "it fails when gform returns non OK response" in new Fixture {
-    val status = 400
-    val responseJson = None
-    val isUpstream400Response = connector
-      .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1, submissionRef)
-      .failed
-      .futureValue match {
-      case UpstreamErrorResponse.Upstream4xxResponse(_) => true
-      case _                                            => false
+  test("GformConnector.form - unhappy scenarios should it fails when gform returns BadRequest") {
+    new ConnectorFixture {
+      val status = 400
+      val responseJson = None
+      val isUpstream400Response: Boolean = connector
+        .getForm(formIdData)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(e) if e.statusCode == 400 => true
+        case _                                                                   => false
+      }
+      isUpstream400Response shouldBe true
     }
-    isUpstream400Response shouldBe true
   }
 
-  behavior of "GformConnector.getHipAgentDetails - happy path"
+  test("GformConnector.form - unhappy scenarios should it fails when gform returns 4xx code") {
+    new ConnectorFixture {
+      val status = 401
+      val responseJson = None
+      val isUpstream4xxResponse: Boolean = connector
+        .getForm(formIdData)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(_) => true
+        case _                                            => false
+      }
+      isUpstream4xxResponse shouldBe true
+    }
+  }
 
-  it should "return ServiceResponse with processed attributes on a 200 response" in new Fixture {
-    val status = 200
-    val responseJson = Some(
-      Json.obj(
-        "det" -> Json.obj(
-          "success" -> Json.obj(
-            "name"     -> "Test Agency",
-            "addr1"    -> "1 Test Street",
-            "addr2"    -> "",
-            "addr3"    -> "",
-            "addr4"    -> "",
-            "postcode" -> "TE1 1ST",
-            "country"  -> "GB",
-            "email"    -> "test@example.com",
-            "phone"    -> "01234567890"
+  test(
+    "GformConnector.createSubmission - successful scenario should create submission and return the Submission entity"
+  ) {
+    new ConnectorFixture {
+      val status = 200
+      implicit val localDateTime: LocalDateTime = LocalDateTime.now()
+      val responseJson = Some(Json.toJson(submission))
+      connector
+        .createSubmission(
+          formIdData.toFormId,
+          formTemplateId,
+          envelopeId,
+          "some-customer-id",
+          1,
+          submissionRef
+        )
+        .futureValue shouldBe submission
+    }
+  }
+
+  test(
+    "GformConnector.createSubmission - successful scenario should it fails when gform returns non OK response"
+  ) {
+    new ConnectorFixture {
+      val status = 400
+      val responseJson = None
+      val isUpstream400Response = connector
+        .createSubmission(formIdData.toFormId, formTemplateId, envelopeId, "some-customer-id", 1, submissionRef)
+        .failed
+        .futureValue match {
+        case UpstreamErrorResponse.Upstream4xxResponse(_) => true
+        case _                                            => false
+      }
+      isUpstream400Response shouldBe true
+    }
+  }
+
+  test(
+    "GformConnector.getHipAgentDetails - happy path should return ServiceResponse with processed attributes on a 200 response"
+  ) {
+    new ConnectorFixture {
+      val status = 200
+      val responseJson = Some(
+        Json.obj(
+          "det" -> Json.obj(
+            "success" -> Json.obj(
+              "name"     -> "Test Agency",
+              "addr1"    -> "1 Test Street",
+              "addr2"    -> "",
+              "addr3"    -> "",
+              "addr4"    -> "",
+              "postcode" -> "TE1 1ST",
+              "country"  -> "GB",
+              "email"    -> "test@example.com",
+              "phone"    -> "01234567890"
+            )
           )
         )
       )
-    )
 
-    val dataRetrieve = DataRetrieve(
-      tpe = DataRetrieve.Type("agentDetails"),
-      id = DataRetrieveId("agencyInfo"),
-      attributes = Attr.FromObject(
-        List(
-          AttributeInstruction(
-            DataRetrieve.Attribute("agencyName"),
-            ConstructAttribute.AsIs(Fetch(List("det", "success", "name")))
-          ),
-          AttributeInstruction(
-            DataRetrieve.Attribute("agencyEmail"),
-            ConstructAttribute.AsIs(Fetch(List("det", "success", "email")))
+      val dataRetrieve = DataRetrieve(
+        tpe = DataRetrieve.Type("agentDetails"),
+        id = DataRetrieveId("agencyInfo"),
+        attributes = Attr.FromObject(
+          List(
+            AttributeInstruction(
+              DataRetrieve.Attribute("agencyName"),
+              ConstructAttribute.AsIs(Fetch(List("det", "success", "name")))
+            ),
+            AttributeInstruction(
+              DataRetrieve.Attribute("agencyEmail"),
+              ConstructAttribute.AsIs(Fetch(List("det", "success", "email")))
+            )
+          )
+        ),
+        attrTypeMapping = Map.empty,
+        params = List.empty,
+        `if` = None,
+        maxFailedAttempts = None,
+        failureCountResetMinutes = None,
+        callOnNoChange = false,
+        populateATL = None,
+        UrlDescriptor(
+          urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
+          destination = UrlDestination.GForm
+        ),
+        Some(
+          UrlDescriptor(
+            urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+            destination = UrlDestination.HIP
+          )
+        ),
+        manualFallbackIsDesigned = None
+      )
+
+      val request = DataRetrieve.Request(
+        json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
+        params = List("agentReferenceNumber" -> "XARN1234567"),
+        previousFailureCount = None,
+        failureResetTime = None,
+        correlationId = Some("test-correlation-id")
+      )
+
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe ServiceResponse(
+        DataRetrieve.Response.Object(
+          Map(
+            DataRetrieve.Attribute("agencyName")  -> "Test Agency",
+            DataRetrieve.Attribute("agencyEmail") -> "test@example.com"
           )
         )
-      ),
-      attrTypeMapping = Map.empty,
-      params = List.empty,
-      `if` = None,
-      maxFailedAttempts = None,
-      failureCountResetMinutes = None,
-      callOnNoChange = false,
-      populateATL = None,
-      UrlDescriptor(
-        urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
-        destination = UrlDestination.GForm
-      ),
-      Some(
-        UrlDescriptor(
-          urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
-          destination = UrlDestination.HIP
-        )
       )
-    )
-
-    val request = DataRetrieve.Request(
-      json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
-      params = List("agentReferenceNumber" -> "XARN1234567"),
-      previousFailureCount = None,
-      failureResetTime = None,
-      correlationId = Some("test-correlation-id")
-    )
-
-    connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe ServiceResponse(
-      DataRetrieve.Response.Object(
-        Map(
-          DataRetrieve.Attribute("agencyName")  -> "Test Agency",
-          DataRetrieve.Attribute("agencyEmail") -> "test@example.com"
-        )
-      )
-    )
+    }
   }
 
-  behavior of "GformConnector.getHipAgentDetails - error scenarios"
+  test(
+    "GformConnector.getHipAgentDetails - error scenarios should return CannotRetrieveResponse when backend returns 500"
+  ) {
+    new ConnectorFixture {
+      val status = 500
+      val responseJson = None
 
-  it should "return CannotRetrieveResponse when backend returns 500" in new Fixture {
-    val status = 500
-    val responseJson = None
-
-    val dataRetrieve = DataRetrieve(
-      tpe = DataRetrieve.Type("agentDetails"),
-      id = DataRetrieveId("agencyInfo"),
-      attributes = Attr.FromObject(List.empty),
-      attrTypeMapping = Map.empty,
-      params = List.empty,
-      `if` = None,
-      maxFailedAttempts = None,
-      failureCountResetMinutes = None,
-      callOnNoChange = false,
-      populateATL = None,
-      UrlDescriptor(
-        urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
-        destination = UrlDestination.GForm
-      ),
-      Some(
+      val dataRetrieve = DataRetrieve(
+        tpe = DataRetrieve.Type("agentDetails"),
+        id = DataRetrieveId("agencyInfo"),
+        attributes = Attr.FromObject(List.empty),
+        attrTypeMapping = Map.empty,
+        params = List.empty,
+        `if` = None,
+        maxFailedAttempts = None,
+        failureCountResetMinutes = None,
+        callOnNoChange = false,
+        populateATL = None,
         UrlDescriptor(
-          urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
-          destination = UrlDestination.HIP
-        )
+          urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
+          destination = UrlDestination.GForm
+        ),
+        Some(
+          UrlDescriptor(
+            urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+            destination = UrlDestination.HIP
+          )
+        ),
+        manualFallbackIsDesigned = None
       )
-    )
 
-    val request = DataRetrieve.Request(
-      json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
-      params = List("agentReferenceNumber" -> "XARN1234567"),
-      previousFailureCount = None,
-      failureResetTime = None,
-      correlationId = None
-    )
+      val request = DataRetrieve.Request(
+        json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
+        params = List("agentReferenceNumber" -> "XARN1234567"),
+        previousFailureCount = None,
+        failureResetTime = None,
+        correlationId = None
+      )
 
-    connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+    }
   }
 
-  it should "return CannotRetrieveResponse when backend returns 401" in new Fixture {
-    val status = 401
-    val responseJson = None
+  test(
+    "GformConnector.getHipAgentDetails - error scenarios should return CannotRetrieveResponse when backend returns 401"
+  ) {
+    new ConnectorFixture {
+      val status = 401
+      val responseJson = None
 
-    val dataRetrieve = DataRetrieve(
-      tpe = DataRetrieve.Type("agentDetails"),
-      id = DataRetrieveId("agencyInfo"),
-      attributes = Attr.FromObject(List.empty),
-      attrTypeMapping = Map.empty,
-      params = List.empty,
-      `if` = None,
-      maxFailedAttempts = None,
-      failureCountResetMinutes = None,
-      callOnNoChange = false,
-      populateATL = None,
-      UrlDescriptor(
-        urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
-        destination = UrlDestination.GForm
-      ),
-      Some(
+      val dataRetrieve = DataRetrieve(
+        tpe = DataRetrieve.Type("agentDetails"),
+        id = DataRetrieveId("agencyInfo"),
+        attributes = Attr.FromObject(List.empty),
+        attrTypeMapping = Map.empty,
+        params = List.empty,
+        `if` = None,
+        maxFailedAttempts = None,
+        failureCountResetMinutes = None,
+        callOnNoChange = false,
+        populateATL = None,
         UrlDescriptor(
-          urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
-          destination = UrlDestination.HIP
-        )
+          urlPath = "/hip/agent-details/{{agentReferenceNumber}}",
+          destination = UrlDestination.GForm
+        ),
+        Some(
+          UrlDescriptor(
+            urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
+            destination = UrlDestination.HIP
+          )
+        ),
+        manualFallbackIsDesigned = None
       )
-    )
 
-    val request = DataRetrieve.Request(
-      json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
-      params = List("agentReferenceNumber" -> "XARN1234567"),
-      previousFailureCount = None,
-      failureResetTime = None,
-      correlationId = None
-    )
+      val request = DataRetrieve.Request(
+        json = Json.obj("agentReferenceNumber" -> "XARN1234567"),
+        params = List("agentReferenceNumber" -> "XARN1234567"),
+        previousFailureCount = None,
+        failureResetTime = None,
+        correlationId = None
+      )
 
-    connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+    }
   }
 
-  trait Fixture extends ExampleData {
+  List(404, 503).foreach { status =>
+    test(
+      "Data retrieve no-record responses" + " should " + s"distinguish no records from technical failure for HIP and DES HTTP $status"
+    ) {
+      val httpClient = mock(classOf[HttpClientV2])
+      val requestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
+      when(httpClient.get(any[URL])(any[HeaderCarrier])).thenReturn(requestBuilder)
+      when(httpClient.post(any[URL])(any[HeaderCarrier])).thenReturn(requestBuilder)
+      when(requestBuilder.execute[HttpResponse](any[HttpReads[HttpResponse]], any[ExecutionContext]))
+        .thenReturn(Future.successful(HttpResponse(status, "{}")))
+      val connector = new GformConnector(httpClient, "http://localhost")
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val dataRetrieve = DataRetrieve(
+        tpe = DataRetrieve.Type("agentDetails"),
+        id = DataRetrieveId("agencyInfo"),
+        attributes = Attr.FromObject(
+          List(AttributeInstruction(DataRetrieve.Attribute("name"), ConstructAttribute.AsIs(Fetch(List("name")))))
+        ),
+        attrTypeMapping = Map.empty,
+        params = Nil,
+        `if` = None,
+        maxFailedAttempts = None,
+        failureCountResetMinutes = None,
+        callOnNoChange = false,
+        populateATL = None,
+        urlFrontend = UrlDescriptor("/retrieve", UrlDestination.GForm),
+        urlBackend = None,
+        manualFallbackIsDesigned = None
+      )
+      val request = DataRetrieve.Request(Json.obj(), Nil, None, None, None)
+      val expected = if (status == 404) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
+
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe expected
+      connector
+        .getDesOrganisation(dataRetrieve.copy(tpe = DataRetrieve.Type("hmrcRosmRegistrationCheck")), request)
+        .futureValue shouldBe expected
+    }
+  }
+
+  trait ConnectorFixture extends ExampleData {
     def status: Int
     def responseJson: Option[JsValue]
     lazy val r: HttpResponse = HttpResponse(

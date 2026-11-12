@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.gform.gform
 
+import munit.FunSuite
+
 import cats.data.NonEmptyList
 import cats.implicits.catsSyntaxApplicativeId
 import org.apache.pekko.actor.ActorSystem
 import org.mockito.MockitoSugar.when
 import org.mockito.{ ArgumentMatchersSugar, IdiomaticMockito }
-import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 import play.api.http.{ HttpConfiguration, Status }
 import play.api.i18n._
+import play.api.libs.json.Json
 import play.api.mvc.Results.Redirect
 import play.api.mvc._
 import play.api.test.FakeRequest
@@ -37,6 +39,7 @@ import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.{ MaterialisedRetrievals, OperationWithForm, OperationWithoutForm }
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthCacheWithoutForm, AuthenticatedRequestActions }
+import uk.gov.hmrc.gform.eval.InitFormEvaluator
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator, SmartStringEvaluatorFactory }
 import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
 import uk.gov.hmrc.gform.graph.FormTemplateBuilder.{ mkFormComponent, mkFormTemplate, mkSection }
@@ -45,7 +48,7 @@ import uk.gov.hmrc.gform.objectStore.{ Envelope, ObjectStoreService }
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.form._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.SuppressErrors.{ No, Yes }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FormComponentId, FormTemplate, FormTemplateId, FormTemplateVersion, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ Constant, DataRetrieveCtx, Equals, FormComponentId, FormTemplate, FormTemplateId, FormTemplateVersion, IncludeIf, Section, SectionNumber, SectionTitle4Ga, ShortText, SuppressErrors, TemplateSectionIndex, Text, Value }
 import uk.gov.hmrc.gform.submission.{ DmsMetaData, Submission, SubmissionId }
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -53,400 +56,524 @@ import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
 
 class NewFormControllerSpec
-    extends AnyFlatSpecLike with Matchers with IdiomaticMockito with ArgumentMatchersSugar with FormModelSupport
+    extends FunSuite with Matchers with IdiomaticMockito with ArgumentMatchersSugar with FormModelSupport
     with PlayStubSupport with ExampleFrontendAppConfig with ExampleAuthConfig {
 
   implicit val sys: ActorSystem = ActorSystem("NewFormControllerSpec")
 
   val newFormUrl: String = "/form/tst1/?n=n1&se=f"
 
-  "downloadOldOrNewForm" should "start a fresh form when no previous form detected" in new TestFixture {
-    initCommonMocks()
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Option.empty[Form]),
-        Future.successful(Some(authCacheWithForm.form))
+  test(
+    "Resuming a manual fallback should preserve the saved decision and manual answers after a top-level API recovers"
+  ) {
+    new TestFixture {
+      val id = DataRetrieveId("agencyInfo")
+      val failure = DataRetrieveResult(
+        id,
+        RetrieveDataType.ObjectType(Map.empty),
+        Json.obj(),
+        None,
+        None,
+        None,
+        hasFailed = Some(true)
       )
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
-  }
-
-  it should "start a fresh form when no previous submission detected" in new TestFixture {
-    initCommonMocks()
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(authCacheWithForm.form))
+      val savedForm = authCacheWithForm.form.copy(
+        thirdPartyData = authCacheWithForm.form.thirdPartyData.updateDataRetrieve(List(failure)),
+        formData = FormData(List(FormField(FormComponentId("manualAgencyName").modelComponentId, "Manual agency")))
       )
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(Option.empty[Submission]))
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
-  }
-
-  it should "start a fresh form when downloadPreviousSubmissionPdf is false" in new TestFixture {
-    override lazy val authCacheWithoutForm: AuthCacheWithoutForm =
-      mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false)).toAuthCacheWithoutForm
-
-    initCommonMocks()
-
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(authCacheWithForm.form.copy(status = Submitted))),
-        Future.successful(Some(authCacheWithForm.form.copy(status = InProgress)))
+      val recovered = failure.copy(
+        hasFailed = Some(false),
+        data = RetrieveDataType.ObjectType(Map(DataRetrieve.Attribute("agencyName") -> "Recovered agency"))
       )
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
-  }
-
-  it should "ask to download or start new form when previous submission detected" in new TestFixture {
-    initCommonMocks()
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(authCacheWithForm.form.copy(status = Submitted)))
+      val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> recovered)))
+      val resumed = cache.toAuthCacheWithForm(savedForm, None)
+      resumed.form.thirdPartyData.dataRetrieve shouldBe savedForm.thirdPartyData.dataRetrieve
+      resumed.form.formData shouldBe savedForm.formData
+      val optics = FormModelOptics.mkFormModelOptics[SectionSelectorType.Normal](
+        resumed.variadicFormData,
+        resumed,
+        recomputeGraph = false
       )
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.OK
-    contentType(result) shouldBe Some(MimeTypes.HTML)
-    val html: String = contentAsString(result)
-    html should include("What do you want to do?")
-    html should include("Get a copy of the form that you submitted")
-    html should include("Start a new form")
-  }
-
-  it should "ask to download or start new form when previous submission of an earlier form version detected" in new LegacyFormSubmissionFixture {
-    initCommonMocks()
-
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(version1Form))
+      val fallbackCondition = IncludeIf(
+        Equals(DataRetrieveCtx(id, DataRetrieve.hasFailedAttribute), Constant("true"))
       )
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(None))
-    when(
-      mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
-        *[HeaderCarrier],
-        *[ExecutionContext]
-      )
-    )
-      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.OK
-    contentType(result) shouldBe Some(MimeTypes.HTML)
-    val html: String = contentAsString(result)
-    html should include("What do you want to do?")
-    html should include("Get a copy of the form that you submitted")
-    html should include("Start a new form")
-  }
-
-  it should "start a fresh form when no previous submission for legacy form detected" in new LegacyFormSubmissionFixture {
-    initCommonMocks()
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(authCacheWithForm.form)),
-        Future.successful(Some(authCacheWithForm.form.copy(status = InProgress)))
-      )
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(Option.empty[Submission]))
-    when(
-      mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
-        *[HeaderCarrier],
-        *[ExecutionContext]
-      )
-    )
-      .thenReturn(Future.successful(Option.empty[Submission]))
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
-  }
-
-  "downloadDecision" should "redirect to previous submission page" in new TestFixture {
-    override lazy val request: FakeRequest[AnyContent] =
-      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "download")
-    initCommonMocks()
-
-    val result: Future[Result] = newFormController
-      .downloadDecision(authCacheWithForm.formTemplateId)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission/-")
-  }
-
-  it should "start a new form" in new TestFixture {
-    override lazy val request: FakeRequest[AnyContent] =
-      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "startNew")
-    initCommonMocks()
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(authCacheWithForm.form))
-      )
-
-    val result: Future[Result] = newFormController
-      .downloadDecision(authCacheWithForm.formTemplateId)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
-  }
-
-  it should "redirect to download or new if no input posted" in new TestFixture {
-    override lazy val request: FakeRequest[AnyContent] = FakeRequest("POST", "/")
-    initCommonMocks()
-
-    val result: Future[Result] = newFormController
-      .downloadDecision(authCacheWithForm.formTemplateId)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/new-or-previous?se=f")
-  }
-
-  "downloadOldOrNewForm with legacy template versioning" should "redirect to download page when submitted form exists under legacy template with different IDs" in new LegacyFormSubmissionWithV2IdFixture {
-    initCommonMocks()
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(version1Form))
-      )
-    when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(Future.successful(None))
-    when(
-      mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
-        *[HeaderCarrier],
-        *[ExecutionContext]
-      )
-    )
-      .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
-
-    val result: Future[Result] = newFormController
-      .downloadOldOrNewForm(v2TemplateId, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.OK
-    contentType(result) shouldBe Some(MimeTypes.HTML)
-    val html: String = contentAsString(result)
-    html should include("What do you want to do?")
-    html should include("Get a copy of the form that you submitted")
-    html should include("Start a new form")
-  }
-
-  it should "redirect to previous submission page using new template ID when legacy form submitted" in new LegacyFormSubmissionWithV2IdFixture {
-    override lazy val request: FakeRequest[AnyContent] =
-      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "download")
-    initCommonMocks()
-
-    val result: Future[Result] = newFormController
-      .downloadDecision(v2TemplateId)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1-v2/previous-submission/-")
-  }
-
-  it should "start a new form when legacy form submitted and user chooses startNew" in new LegacyFormSubmissionWithV2IdFixture {
-    override lazy val request: FakeRequest[AnyContent] =
-      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "startNew")
-    initCommonMocks()
-    val v2Form: Form = mkForm(v2TemplateId)
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(v2Form))
-      )
-
-    val result: Future[Result] = newFormController
-      .downloadDecision(v2TemplateId)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    val location = redirectLocation(result).get
-    location should include("/form/tst1-v2/")
-  }
-
-  "lastSubmission" should "display page with submission ref and download PDF button" in new TestFixture {
-    initCommonMocks()
-    when(
-      mockGformConnector
-        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
-    )
-      .thenReturn(
-        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
-      )
-
-    val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.OK
-    contentType(result) shouldBe Some(MimeTypes.HTML)
-    val html: String = contentAsString(result)
-    html should include("Download a copy of the form that you submitted")
-    html should include("Submission reference")
-    html should include("Submitted at")
-  }
-
-  it should "display page with submission ref and download PDF button when legacy form" in new LegacyFormSubmissionFixture {
-    initCommonMocks()
-    when(
-      mockGformConnector
-        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
-    )
-      .thenReturn(
-        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
-      )
-
-    val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.OK
-    contentType(result) shouldBe Some(MimeTypes.HTML)
-    val html: String = contentAsString(result)
-    html should include("Download a copy of the form that you submitted")
-    html should include("Submission reference")
-    html should include("Submitted at")
-  }
-
-  it should "start a new form when no previous form submission detected" in new TestFixture {
-    initCommonMocks()
-    mockAuth
-      .authAndRetrieveForm[SectionSelectorType.Normal](
-        *[FormTemplateId],
-        *[Option[AccessCode]],
-        *[OperationWithForm]
-      )(
-        *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
-          Result
-        ]]
-      ) answers {
-      (
-        _: FormTemplateId,
-        _: Option[AccessCode],
-        _: OperationWithForm,
-        f: Request[
-          AnyContent
-        ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
-          Result
-        ]
-      ) =>
-        messagesControllerComponents.actionBuilder.async { _ =>
-          Redirect(newFormUrl).pure[Future]
-        }
+      optics.formModelVisibilityOptics.evalIncludeIfExpr(fallbackCondition, None) shouldBe true
     }
-
-    val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
   }
 
-  it should "ask to start new or continue form when downloadPreviousSubmissionPdf is false" in new TestFixture {
-    override lazy val authCacheWithForm: AuthCacheWithForm =
-      mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false))
-
-    initCommonMocks()
-    when(
-      mockGformConnector
-        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
-    ).thenReturn(
-      Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
-    )
-
-    val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
-      .apply(request)
-
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
+  test("Initial retrieval evaluation should read optional hasFailed metadata from an empty list result") {
+    new TestFixture {
+      val id = DataRetrieveId("agencyInfo")
+      List(None, Some(false), Some(true)).foreach { hasFailed =>
+        val result = DataRetrieveResult(
+          id,
+          RetrieveDataType.ListType(List.empty),
+          Json.obj(),
+          None,
+          None,
+          None,
+          hasFailed = hasFailed
+        )
+        val cache = authCacheWithoutForm.copy(dataRetrieve = Some(Map(id -> result)))
+        val evaluator = InitFormEvaluator(cache, cache.formTemplate.authConfig, None)
+        val ctx = DataRetrieveCtx(id, DataRetrieve.hasFailedAttribute)
+        evaluator.evalExpr(ctx) shouldBe hasFailed.contains(true).toString
+        evaluator.evalIncludeIf(IncludeIf(Equals(ctx, Constant("true")))) shouldBe hasFailed.contains(true)
+      }
+    }
   }
 
-  it should "ask to start new or continue form when form that's not submitted detected" in new TestFixture {
-    initCommonMocks()
-    when(
-      mockGformConnector
-        .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext])
-    ).thenReturn(
-      Future.successful(Option.empty[Submission])
-    )
+  test("downloadOldOrNewForm should start a fresh form when no previous form detected") {
+    new TestFixture {
+      initCommonMocks()
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Option.empty[Form]),
+          Future.successful(Some(authCacheWithForm.form))
+        )
 
-    val result: Future[Result] = newFormController
-      .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
-      .apply(request)
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+        .apply(request)
 
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
   }
 
-  "newOrSignout" should "redirect to sign out page" in new TestFixture {
-    override lazy val request: FakeRequest[AnyContent] =
-      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadThenNew" -> "signOut")
-    initCommonMocks()
+  test("downloadOldOrNewForm should start a fresh form when no previous submission detected") {
+    new TestFixture {
+      initCommonMocks()
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(authCacheWithForm.form))
+        )
+      when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(Future.successful(Option.empty[Submission]))
 
-    val result: Future[Result] = newFormController
-      .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
-      .apply(request)
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+        .apply(request)
 
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/sign-out/tst1")
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
   }
 
-  it should "start a new form" in new TestFixture {
-    override lazy val request: FakeRequest[AnyContent] =
-      FakeRequest("POST", "/").withFormUrlEncodedBody("downloadThenNew" -> "startNew")
-    initCommonMocks()
+  test("downloadOldOrNewForm should start a fresh form when downloadPreviousSubmissionPdf is false") {
+    new TestFixture {
+      override lazy val authCacheWithoutForm: AuthCacheWithoutForm =
+        mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false)).toAuthCacheWithoutForm
 
-    when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
-      .thenReturn(
-        Future.successful(Some(authCacheWithForm.form))
+      initCommonMocks()
+
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(authCacheWithForm.form.copy(status = Submitted))),
+          Future.successful(Some(authCacheWithForm.form.copy(status = InProgress)))
+        )
+
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
+  }
+
+  test("downloadOldOrNewForm should ask to download or start new form when previous submission detected") {
+    new TestFixture {
+      initCommonMocks()
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(authCacheWithForm.form.copy(status = Submitted)))
+        )
+      when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
+
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.OK
+      contentType(result) shouldBe Some(MimeTypes.HTML)
+      val html: String = contentAsString(result)
+      html should include("What do you want to do?")
+      html should include("Get a copy of the form that you submitted")
+      html should include("Start a new form")
+    }
+  }
+
+  test(
+    "downloadOldOrNewForm should ask to download or start new form when previous submission of an earlier form version detected"
+  ) {
+    new LegacyFormSubmissionFixture {
+      initCommonMocks()
+
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(version1Form))
+        )
+      when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(Future.successful(None))
+      when(
+        mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
+          *[HeaderCarrier],
+          *[ExecutionContext]
+        )
+      )
+        .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
+
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.OK
+      contentType(result) shouldBe Some(MimeTypes.HTML)
+      val html: String = contentAsString(result)
+      html should include("What do you want to do?")
+      html should include("Get a copy of the form that you submitted")
+      html should include("Start a new form")
+    }
+  }
+
+  test(
+    "downloadOldOrNewForm should start a fresh form when no previous submission for legacy form detected"
+  ) {
+    new LegacyFormSubmissionFixture {
+      initCommonMocks()
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(authCacheWithForm.form)),
+          Future.successful(Some(authCacheWithForm.form.copy(status = InProgress)))
+        )
+      when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(Future.successful(Option.empty[Submission]))
+      when(
+        mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
+          *[HeaderCarrier],
+          *[ExecutionContext]
+        )
+      )
+        .thenReturn(Future.successful(Option.empty[Submission]))
+
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(authCacheWithForm.formTemplateId, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
+  }
+
+  test("downloadDecision should redirect to previous submission page") {
+    new TestFixture {
+      override lazy val request: FakeRequest[AnyContent] =
+        FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "download")
+      initCommonMocks()
+
+      val result: Future[Result] = newFormController
+        .downloadDecision(authCacheWithForm.formTemplateId)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission/-")
+    }
+  }
+
+  test("downloadDecision should start a new form") {
+    new TestFixture {
+      override lazy val request: FakeRequest[AnyContent] =
+        FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "startNew")
+      initCommonMocks()
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(authCacheWithForm.form))
+        )
+
+      val result: Future[Result] = newFormController
+        .downloadDecision(authCacheWithForm.formTemplateId)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
+  }
+
+  test("downloadDecision should redirect to download or new if no input posted") {
+    new TestFixture {
+      override lazy val request: FakeRequest[AnyContent] = FakeRequest("POST", "/")
+      initCommonMocks()
+
+      val result: Future[Result] = newFormController
+        .downloadDecision(authCacheWithForm.formTemplateId)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/new-form/tst1/new-or-previous?se=f")
+    }
+  }
+
+  test(
+    "downloadOldOrNewForm with legacy template versioning should redirect to download page when submitted form exists under legacy template with different IDs"
+  ) {
+    new LegacyFormSubmissionWithV2IdFixture {
+      initCommonMocks()
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(version1Form))
+        )
+      when(mockGformConnector.submissionDetails(*[FormIdData], *[EnvelopeId])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(Future.successful(None))
+      when(
+        mockGformConnector.getSubmissionByLegacyIds(*[FormIdData], *[EnvelopeId])(*[NonEmptyList[FormTemplateId]])(
+          *[HeaderCarrier],
+          *[ExecutionContext]
+        )
+      )
+        .thenReturn(Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13)))))
+
+      val result: Future[Result] = newFormController
+        .downloadOldOrNewForm(v2TemplateId, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.OK
+      contentType(result) shouldBe Some(MimeTypes.HTML)
+      val html: String = contentAsString(result)
+      html should include("What do you want to do?")
+      html should include("Get a copy of the form that you submitted")
+      html should include("Start a new form")
+    }
+  }
+
+  test(
+    "downloadOldOrNewForm with legacy template versioning should redirect to previous submission page using new template ID when legacy form submitted"
+  ) {
+    new LegacyFormSubmissionWithV2IdFixture {
+      override lazy val request: FakeRequest[AnyContent] =
+        FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "download")
+      initCommonMocks()
+
+      val result: Future[Result] = newFormController
+        .downloadDecision(v2TemplateId)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/new-form/tst1-v2/previous-submission/-")
+    }
+  }
+
+  test(
+    "downloadOldOrNewForm with legacy template versioning should start a new form when legacy form submitted and user chooses startNew"
+  ) {
+    new LegacyFormSubmissionWithV2IdFixture {
+      override lazy val request: FakeRequest[AnyContent] =
+        FakeRequest("POST", "/").withFormUrlEncodedBody("downloadOrNew" -> "startNew")
+      initCommonMocks()
+      val v2Form: Form = mkForm(v2TemplateId)
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(v2Form))
+        )
+
+      val result: Future[Result] = newFormController
+        .downloadDecision(v2TemplateId)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      val location = redirectLocation(result).get
+      location should include("/form/tst1-v2/")
+    }
+  }
+
+  test("lastSubmission should display page with submission ref and download PDF button") {
+    new TestFixture {
+      initCommonMocks()
+      when(
+        mockGformConnector
+          .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(
+            *[HeaderCarrier],
+            *[ExecutionContext]
+          )
+      )
+        .thenReturn(
+          Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
+        )
+
+      val result: Future[Result] = newFormController
+        .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.OK
+      contentType(result) shouldBe Some(MimeTypes.HTML)
+      val html: String = contentAsString(result)
+      html should include("Download a copy of the form that you submitted")
+      html should include("Submission reference")
+      html should include("Submitted at")
+    }
+  }
+
+  test("lastSubmission should display page with submission ref and download PDF button when legacy form") {
+    new LegacyFormSubmissionFixture {
+      initCommonMocks()
+      when(
+        mockGformConnector
+          .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(
+            *[HeaderCarrier],
+            *[ExecutionContext]
+          )
+      )
+        .thenReturn(
+          Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
+        )
+
+      val result: Future[Result] = newFormController
+        .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.OK
+      contentType(result) shouldBe Some(MimeTypes.HTML)
+      val html: String = contentAsString(result)
+      html should include("Download a copy of the form that you submitted")
+      html should include("Submission reference")
+      html should include("Submitted at")
+    }
+  }
+
+  test("lastSubmission should start a new form when no previous form submission detected") {
+    new TestFixture {
+      initCommonMocks()
+      mockAuth
+        .authAndRetrieveForm[SectionSelectorType.Normal](
+          *[FormTemplateId],
+          *[Option[AccessCode]],
+          *[OperationWithForm]
+        )(
+          *[Request[AnyContent] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
+            Result
+          ]]
+        ) answers {
+        (
+          _: FormTemplateId,
+          _: Option[AccessCode],
+          _: OperationWithForm,
+          f: Request[
+            AnyContent
+          ] => LangADT => AuthCacheWithForm => SmartStringEvaluator => FormModelOptics => Future[
+            Result
+          ]
+        ) =>
+          messagesControllerComponents.actionBuilder.async { _ =>
+            Redirect(newFormUrl).pure[Future]
+          }
+      }
+
+      val result: Future[Result] = newFormController
+        .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
+  }
+
+  test(
+    "lastSubmission should ask to start new or continue form when downloadPreviousSubmissionPdf is false"
+  ) {
+    new TestFixture {
+      override lazy val authCacheWithForm: AuthCacheWithForm =
+        mkAuthCacheWithForm(mkFormTemplate(sections).copy(downloadPreviousSubmissionPdf = false))
+
+      initCommonMocks()
+      when(
+        mockGformConnector
+          .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(
+            *[HeaderCarrier],
+            *[ExecutionContext]
+          )
+      ).thenReturn(
+        Future.successful(Some(getSubmission(LocalDateTime.now().minusHours(13))))
       )
 
-    val result: Future[Result] = newFormController
-      .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
-      .apply(request)
+      val result: Future[Result] = newFormController
+        .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
+        .apply(request)
 
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some(newFormUrl)
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
+    }
   }
 
-  it should "redirect to last submission if no input posted" in new TestFixture {
-    override lazy val request: FakeRequest[AnyContent] = FakeRequest("POST", "/")
-    initCommonMocks()
+  test("lastSubmission should ask to start new or continue form when form that's not submitted detected") {
+    new TestFixture {
+      initCommonMocks()
+      when(
+        mockGformConnector
+          .maybeOneOfSubmissionDetails(*[FormIdData], *[FormIdData], *[EnvelopeId])(
+            *[HeaderCarrier],
+            *[ExecutionContext]
+          )
+      ).thenReturn(
+        Future.successful(Option.empty[Submission])
+      )
 
-    val result: Future[Result] = newFormController
-      .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
-      .apply(request)
+      val result: Future[Result] = newFormController
+        .lastSubmission(authCacheWithForm.formTemplateId, noAccessCode, Yes)
+        .apply(request)
 
-    status(result) shouldBe Status.SEE_OTHER
-    redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission/-?se=f")
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/new-form/tst1/one-per-user")
+    }
+  }
+
+  test("newOrSignout should redirect to sign out page") {
+    new TestFixture {
+      override lazy val request: FakeRequest[AnyContent] =
+        FakeRequest("POST", "/").withFormUrlEncodedBody("downloadThenNew" -> "signOut")
+      initCommonMocks()
+
+      val result: Future[Result] = newFormController
+        .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/sign-out/tst1")
+    }
+  }
+
+  test("newOrSignout should start a new form") {
+    new TestFixture {
+      override lazy val request: FakeRequest[AnyContent] =
+        FakeRequest("POST", "/").withFormUrlEncodedBody("downloadThenNew" -> "startNew")
+      initCommonMocks()
+
+      when(mockGformConnector.maybeForm(*[FormIdData], *[FormTemplate])(*[HeaderCarrier], *[ExecutionContext]))
+        .thenReturn(
+          Future.successful(Some(authCacheWithForm.form))
+        )
+
+      val result: Future[Result] = newFormController
+        .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some(newFormUrl)
+    }
+  }
+
+  test("newOrSignout should redirect to last submission if no input posted") {
+    new TestFixture {
+      override lazy val request: FakeRequest[AnyContent] = FakeRequest("POST", "/")
+      initCommonMocks()
+
+      val result: Future[Result] = newFormController
+        .newOrSignout(authCacheWithForm.formTemplateId, noAccessCode)
+        .apply(request)
+
+      status(result) shouldBe Status.SEE_OTHER
+      redirectLocation(result) shouldBe Some("/new-form/tst1/previous-submission/-?se=f")
+    }
   }
 
   trait TestFixture {

@@ -117,7 +117,8 @@ class BankAccountReputationAsyncConnectorSpec
         urlPath = "/validate/bank-details",
         destination = UrlDestination.MDTP
       ),
-      None
+      None,
+      manualFallbackIsDesigned = None
     )
 
     val dataRetrieveCompanyHouseProfile = DataRetrieve(
@@ -163,7 +164,8 @@ class BankAccountReputationAsyncConnectorSpec
           urlPath = "/company/{{companyNumber}}",
           destination = UrlDestination.CompaniesHouse
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val dataRetrieveEmployments = DataRetrieve(
@@ -210,7 +212,8 @@ class BankAccountReputationAsyncConnectorSpec
           urlPath = "/paye/employment/employee/{{nino}}/tax-year/{{taxYear}}/employment-details",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(

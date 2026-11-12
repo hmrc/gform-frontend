@@ -479,7 +479,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    organisationB.post(dataRetrieve, request)
+    organisationB.postEmptyIfNotFound(dataRetrieve, request)
 
   private val hipAgentDetailsB =
     new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "hip-agent-details")
@@ -488,7 +488,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    hipAgentDetailsB.get(
+    hipAgentDetailsB.getEmptyIfNotFound(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
