@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.gform
 
+import munit.FunSuite
+
 import org.mockito.ArgumentMatchers.any
 import org.mockito.IdiomaticMockito
 import org.mockito.MockitoSugar.{ times, verify, when }
@@ -30,214 +32,231 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import scala.concurrent.Future
+import org.scalatest.OptionValues
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Millis, Span }
+import scala.concurrent.{ ExecutionContext, Future }
 
-class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
+class DataRetrieveServiceSpec extends FunSuite with Matchers with ScalaFutures with OptionValues with IdiomaticMockito {
+  implicit private val ec: ExecutionContext = ExecutionContext.global
+  override implicit val patienceConfig: PatienceConfig =
+    PatienceConfig(timeout = scaled(Span(1000, Millis)), interval = scaled(Span(15, Millis)))
 
-  "FailureHandling" should "return first time failure request with 1 failure count" in new TestFixture {
-    mockFailureResponse()
+  test("FailureHandling should return first time failure request with 1 failure count") {
+    new TestFixture {
+      mockFailureResponse()
 
-    val resF: Future[Option[DataRetrieveResult]] =
-      callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), mkRequest(None, None))
+      val resF: Future[Option[DataRetrieveResult]] =
+        callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), mkRequest(None, None))
 
-    whenReady(resF) { maybeRes =>
-      val newResetTime: LocalDateTime =
-        LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
+      whenReady(resF) { maybeRes =>
+        val newResetTime: LocalDateTime =
+          LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
 
-      maybeRes.fold(assert(false)) { result =>
-        result.failureCountResetTime shouldBe Some(newResetTime)
-        result.failureCount shouldBe Some(1)
+        maybeRes.fold(DataRetrieveServiceSpec.this.assert(false)) { result =>
+          result.failureCountResetTime shouldBe Some(newResetTime)
+          result.failureCount shouldBe Some(1)
+        }
       }
     }
   }
 
-  it should "return Xth time failure request with incremented failure count" in new TestFixture {
-    mockFailureResponse()
+  test("FailureHandling should return Xth time failure request with incremented failure count") {
+    new TestFixture {
+      mockFailureResponse()
 
-    val futureTime = LocalDateTime.now.plusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
-    val request = mkRequest(Some(2), Some(futureTime))
+      val futureTime = LocalDateTime.now.plusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
+      val request = mkRequest(Some(2), Some(futureTime))
 
-    val resF: Future[Option[DataRetrieveResult]] =
-      callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
+      val resF: Future[Option[DataRetrieveResult]] =
+        callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
 
-    whenReady(resF) { maybeRes =>
-      maybeRes.fold(assert(false)) { result =>
-        result.failureCountResetTime shouldBe request.failureResetTime
-        result.failureCount shouldBe request.previousFailureCount.map(_ + 1)
+      whenReady(resF) { maybeRes =>
+        maybeRes.fold(DataRetrieveServiceSpec.this.assert(false)) { result =>
+          result.failureCountResetTime shouldBe request.failureResetTime
+          result.failureCount shouldBe request.previousFailureCount.map(_ + 1)
+        }
       }
     }
   }
 
-  it should "return Xth time failure request with reset failure count and timeout if past previous block time" in new TestFixture {
-    mockFailureResponse()
+  test(
+    "FailureHandling should return Xth time failure request with reset failure count and timeout if past previous block time"
+  ) {
+    new TestFixture {
+      mockFailureResponse()
 
-    val pastTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
-    val request = mkRequest(Some(2), Some(pastTime))
+      val pastTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
+      val request = mkRequest(Some(2), Some(pastTime))
 
-    val resF: Future[Option[DataRetrieveResult]] =
-      callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
+      val resF: Future[Option[DataRetrieveResult]] =
+        callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
 
-    whenReady(resF) { maybeRes =>
-      val newResetTime: LocalDateTime =
-        LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
+      whenReady(resF) { maybeRes =>
+        val newResetTime: LocalDateTime =
+          LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES).plusMinutes(resetMins.toLong + 1L)
 
-      maybeRes.fold(assert(false)) { result =>
-        result.failureCountResetTime shouldBe Some(newResetTime)
-        result.failureCount shouldBe Some(1)
+        maybeRes.fold(DataRetrieveServiceSpec.this.assert(false)) { result =>
+          result.failureCountResetTime shouldBe Some(newResetTime)
+          result.failureCount shouldBe Some(1)
+        }
       }
     }
   }
 
-  it should "return Xth time success request with reset failure count and timeout if past previous block time" in new TestFixture {
-    mockSuccessResponse()
+  test(
+    "FailureHandling should return Xth time success request with reset failure count and timeout if past previous block time"
+  ) {
+    new TestFixture {
+      mockSuccessResponse()
 
-    val pastTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
-    val request = mkRequest(Some(2), Some(pastTime))
+      val pastTime = LocalDateTime.now.minusMinutes(10).truncatedTo(ChronoUnit.MINUTES)
+      val request = mkRequest(Some(2), Some(pastTime))
 
-    val resF: Future[Option[DataRetrieveResult]] =
-      callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
+      val resF: Future[Option[DataRetrieveResult]] =
+        callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), request)
 
-    whenReady(resF) { maybeRes =>
-      maybeRes.fold(assert(false)) { result =>
-        result.failureCountResetTime shouldBe None
-        result.failureCount shouldBe Some(0)
+      whenReady(resF) { maybeRes =>
+        maybeRes.fold(DataRetrieveServiceSpec.this.assert(false)) { result =>
+          result.failureCountResetTime shouldBe None
+          result.failureCount shouldBe Some(0)
+        }
       }
     }
   }
 
-  it should "return first time success request with no failure count or reset time" in new TestFixture {
-    mockSuccessResponse()
+  test("FailureHandling should return first time success request with no failure count or reset time") {
+    new TestFixture {
+      mockSuccessResponse()
 
-    val resF: Future[Option[DataRetrieveResult]] =
-      callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), mkRequest(None, None))
+      val resF: Future[Option[DataRetrieveResult]] =
+        callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(Some(resetMins)), mkRequest(None, None))
 
-    whenReady(resF) { maybeRes =>
-      maybeRes.fold(assert(false)) { result =>
-        result.failureCountResetTime shouldBe None
-        result.failureCount shouldBe None
+      whenReady(resF) { maybeRes =>
+        maybeRes.fold(DataRetrieveServiceSpec.this.assert(false)) { result =>
+          result.failureCountResetTime shouldBe None
+          result.failureCount shouldBe None
+        }
       }
     }
   }
 
-  it should "not execute failure processing if reset minutes not defined on dataRetrieve" in new TestFixture {
-    mockValidateOnlyResponse()
+  test("FailureHandling should not execute failure processing if reset minutes not defined on dataRetrieve") {
+    new TestFixture {
+      mockValidateOnlyResponse()
 
-    val resF: Future[Option[DataRetrieveResult]] =
-      callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(None), mkRequest(None, None))
+      val resF: Future[Option[DataRetrieveResult]] =
+        callDataRetrieveServiceWith(validateBankDetailsDataRetrieve(None), mkRequest(None, None))
 
-    whenReady(resF) { maybeRes =>
-      verify(mockBankAccountReputationConnector, times(1))
-        .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
+      whenReady(resF) { maybeRes =>
+        verify(mockBankAccountReputationConnector, times(1))
+          .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
 
-      verify(mockBankAccountReputationConnector, times(0))
-        .isFailure(any[DataRetrieve.Response])
+        verify(mockBankAccountReputationConnector, times(0))
+          .isFailure(any[DataRetrieve.Response])
 
-      maybeRes.fold(assert(false)) { result =>
-        result.failureCountResetTime shouldBe None
-        result.failureCount shouldBe None
+        maybeRes.fold(DataRetrieveServiceSpec.this.assert(false)) { result =>
+          result.failureCountResetTime shouldBe None
+          result.failureCount shouldBe None
+        }
       }
     }
   }
 
-  "Manual fallback" should "default to disabled for existing retrieval definitions and results" in new TestFixture {
-    val dataRetrieve = validateBankDetailsDataRetrieve(None)
-    val oldDefinition = Json.toJson(dataRetrieve).as[play.api.libs.json.JsObject] - "manualFallbackIsDesigned"
-    oldDefinition.as[DataRetrieve].manualFallbackIsDesigned shouldBe None
-    dataRetrieve.manualFallbackIsDesigned shouldBe None
-    List(false, true).foreach { flag =>
-      val configured = dataRetrieve.copy(manualFallbackIsDesigned = Some(flag))
-      Json.toJson(configured).as[DataRetrieve] shouldBe configured
-    }
-
-    val result =
-      DataRetrieveResult(dataRetrieve.id, dummyResponse.toRetrieveDataType(), Json.obj(), None, None, None, None)
-    val oldResult = Json.toJson(result).as[play.api.libs.json.JsObject] - "hasFailed"
-    oldResult.as[DataRetrieveResult].hasFailed shouldBe None
-    Json.toJson(result.copy(hasFailed = Some(true))).as[DataRetrieveResult].hasFailed shouldBe Some(true)
-    DataRetrieveEval.getDataRetrieveAttribute(
-      Map(dataRetrieve.id -> oldResult.as[DataRetrieveResult]),
-      DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
-    ) shouldBe Some(List("false"))
-    (oldDefinition + ("manualFallbackIsDesigned" -> Json.toJson("true"))).validate[DataRetrieve].isError shouldBe true
-    (oldResult + ("hasFailed" -> Json.toJson("true"))).validate[DataRetrieveResult].isError shouldBe true
-  }
-
-  it should "fail the journey on an upstream error unless explicitly enabled" in new TestFixture {
-    mockUpstreamResponse(CannotRetrieveResponse)
-    List(None, Some(false)).foreach { flag =>
-      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = flag)
-      val result = callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))
-      whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
-    }
-  }
-
-  it should "fail the journey on an unclassified not-found response by default" in new TestFixture {
-    mockUpstreamResponse(NotFound)
-    List(None, Some(false)).foreach { flag =>
-      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = flag)
-      val result = callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))
-      whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
-    }
-  }
-
-  it should "persist a failed object result with empty attributes when enabled" in new TestFixture {
-    mockUpstreamResponse(CannotRetrieveResponse)
-    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = Some(true))
-    whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-      result.value.hasFailed shouldBe Some(true)
-      val instructions = dataRetrieve.attributes match {
-        case Attr.FromObject(inst) => inst
-        case _                     => fail("Expected object attributes")
+  test("Manual fallback should default to disabled for existing retrieval definitions and results") {
+    new TestFixture {
+      val dataRetrieve = validateBankDetailsDataRetrieve(None)
+      val oldDefinition = Json.toJson(dataRetrieve).as[play.api.libs.json.JsObject] - "manualFallbackIsDesigned"
+      oldDefinition.as[DataRetrieve].manualFallbackIsDesigned shouldBe None
+      dataRetrieve.manualFallbackIsDesigned shouldBe None
+      List(false, true).foreach { flag =>
+        val configured = dataRetrieve.copy(manualFallbackIsDesigned = Some(flag))
+        Json.toJson(configured).as[DataRetrieve] shouldBe configured
       }
-      result.value.data shouldBe RetrieveDataType.ObjectType(instructions.map(_.attribute -> "").toMap)
+
+      val result =
+        DataRetrieveResult(dataRetrieve.id, dummyResponse.toRetrieveDataType(), Json.obj(), None, None, None, None)
+      val oldResult = Json.toJson(result).as[play.api.libs.json.JsObject] - "hasFailed"
+      oldResult.as[DataRetrieveResult].hasFailed shouldBe None
+      Json.toJson(result.copy(hasFailed = Some(true))).as[DataRetrieveResult].hasFailed shouldBe Some(true)
       DataRetrieveEval.getDataRetrieveAttribute(
-        Map(dataRetrieve.id -> result.value),
-        DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
-      ) shouldBe Some(List("true"))
-    }
-  }
-
-  it should "expose failure independently of an empty list payload" in new TestFixture {
-    mockUpstreamResponse(NotFound)
-    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
-      manualFallbackIsDesigned = Some(true),
-      attributes = Attr.FromArray(List.empty)
-    )
-    whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-      result.value.hasFailed shouldBe Some(true)
-      result.value.data shouldBe RetrieveDataType.ListType(List.empty)
-      DataRetrieveEval.getDataRetrieveAttribute(
-        Map(dataRetrieve.id -> result.value),
-        DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
-      ) shouldBe Some(List("true"))
-    }
-  }
-
-  it should "keep successful empty responses on the normal path" in new TestFixture {
-    mockUpstreamResponse(ServiceResponse(DataRetrieve.Response.Array(List.empty)))
-    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
-      manualFallbackIsDesigned = Some(true),
-      attributes = Attr.FromArray(List.empty)
-    )
-    whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
-      result.value.hasFailed shouldBe Some(false)
-      DataRetrieveEval.getDataRetrieveAttribute(
-        Map(dataRetrieve.id -> result.value),
+        Map(dataRetrieve.id -> oldResult.as[DataRetrieveResult]),
         DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
       ) shouldBe Some(List("false"))
+      (oldDefinition + ("manualFallbackIsDesigned" -> Json.toJson("true"))).validate[DataRetrieve].isError shouldBe true
+      (oldResult + ("hasFailed" -> Json.toJson("true"))).validate[DataRetrieveResult].isError shouldBe true
     }
   }
 
-  List(false, true).foreach { manualFallback =>
-    it should s"keep a connector-classified no-record result on the normal path with fallback $manualFallback" in new TestFixture {
-      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = Some(manualFallback))
-      val emptyResponse = DataRetrieve.Response.Object(
-        Map(DataRetrieve.Attribute("isValid") -> "")
+  test("Manual fallback should fail the journey on an upstream error unless explicitly enabled") {
+    new TestFixture {
+      mockUpstreamResponse(CannotRetrieveResponse)
+      List(None, Some(false)).foreach { flag =>
+        val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = flag)
+        val result = callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))
+        whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
+      }
+    }
+  }
+
+  test("Manual fallback should fail the journey on an unclassified not-found response by default") {
+    new TestFixture {
+      mockUpstreamResponse(NotFound)
+      List(None, Some(false)).foreach { flag =>
+        val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = flag)
+        val result = callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))
+        whenReady(result.failed)(_.getMessage shouldBe "Cannot retrieve data")
+      }
+    }
+  }
+
+  test("Manual fallback should persist a failed object result with empty attributes when enabled") {
+    new TestFixture {
+      mockUpstreamResponse(CannotRetrieveResponse)
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = Some(true))
+      whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
+        result.value.hasFailed shouldBe Some(true)
+        val instructions = dataRetrieve.attributes match {
+          case Attr.FromObject(inst) => inst
+          case _                     => DataRetrieveServiceSpec.this.fail("Expected object attributes")
+        }
+        result.value.data shouldBe RetrieveDataType.ObjectType(instructions.map(_.attribute -> "").toMap)
+        DataRetrieveEval.getDataRetrieveAttribute(
+          Map(dataRetrieve.id -> result.value),
+          DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
+        ) shouldBe Some(List("true"))
+      }
+    }
+  }
+
+  test("Manual fallback should expose failure independently of an empty list payload") {
+    new TestFixture {
+      mockUpstreamResponse(NotFound)
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
+        manualFallbackIsDesigned = Some(true),
+        attributes = Attr.FromArray(List.empty)
       )
-      mockUpstreamResponse(ServiceResponse(emptyResponse))
+      whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
+        result.value.hasFailed shouldBe Some(true)
+        result.value.data shouldBe RetrieveDataType.ListType(List.empty)
+        DataRetrieveEval.getDataRetrieveAttribute(
+          Map(dataRetrieve.id -> result.value),
+          DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
+        ) shouldBe Some(List("true"))
+      }
+    }
+  }
+
+  test("Manual fallback should keep successful empty responses on the normal path") {
+    new TestFixture {
+      mockUpstreamResponse(ServiceResponse(DataRetrieve.Response.Array(List.empty)))
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
+        manualFallbackIsDesigned = Some(true),
+        attributes = Attr.FromArray(List.empty)
+      )
       whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
         result.value.hasFailed shouldBe Some(false)
-        result.value.data shouldBe emptyResponse.toRetrieveDataType()
         DataRetrieveEval.getDataRetrieveAttribute(
           Map(dataRetrieve.id -> result.value),
           DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
@@ -246,43 +265,69 @@ class DataRetrieveServiceSpec extends Spec with IdiomaticMockito {
     }
   }
 
-  it should "not retry after recovery, changed parameters or callOnNoChange when fallback is saved" in new TestFixture {
-    mockSuccessResponse()
-    val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
-      manualFallbackIsDesigned = Some(true),
-      callOnNoChange = true,
-      id = DataRetrieveId("1_bankDetails")
-    )
-    val failure = DataRetrieveResult(
-      dataRetrieve.id,
-      RetrieveDataType.ObjectType(Map.empty),
-      Json.obj("accountNumber" -> "old"),
-      None,
-      None,
-      None,
-      hasFailed = Some(true)
-    )
-    val form = Form.dummy(FormTemplateId("4290"))
-    val savedForm = form.copy(thirdPartyData = form.thirdPartyData.updateDataRetrieve(List(failure)))
-    val resumedForm = Json.toJson(savedForm).as[Form]
-    val request = mkRequest(None, None).copy(params = List("accountNumber" -> "changed"))
-    val result = DataRetrieveService.retrieveDataResult(
-      dataRetrieve,
-      Some(resumedForm),
-      request,
-      Some(mockBankAccountReputationConnector),
-      None,
-      None,
-      None,
-      None,
-      None,
-      None
-    )
-    whenReady(result) { result =>
-      result shouldBe None
-      verify(mockBankAccountReputationConnector, times(0))
-        .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
-      resumedForm.thirdPartyData.dataRetrieve.value(dataRetrieve.id).hasFailed shouldBe Some(true)
+  List(false, true).foreach { manualFallback =>
+    test(
+      "Manual fallback" + " should " + s"keep a connector-classified no-record result on the normal path with fallback $manualFallback"
+    ) {
+      new TestFixture {
+        val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(manualFallbackIsDesigned = Some(manualFallback))
+        val emptyResponse = DataRetrieve.Response.Object(
+          Map(DataRetrieve.Attribute("isValid") -> "")
+        )
+        mockUpstreamResponse(ServiceResponse(emptyResponse))
+        whenReady(callDataRetrieveServiceWith(dataRetrieve, mkRequest(None, None))) { result =>
+          result.value.hasFailed shouldBe Some(false)
+          result.value.data shouldBe emptyResponse.toRetrieveDataType()
+          DataRetrieveEval.getDataRetrieveAttribute(
+            Map(dataRetrieve.id -> result.value),
+            DataRetrieveCtx(dataRetrieve.id, DataRetrieve.hasFailedAttribute)
+          ) shouldBe Some(List("false"))
+        }
+      }
+    }
+  }
+
+  test(
+    "Manual fallback should not retry after recovery, changed parameters or callOnNoChange when fallback is saved"
+  ) {
+    new TestFixture {
+      mockSuccessResponse()
+      val dataRetrieve = validateBankDetailsDataRetrieve(None).copy(
+        manualFallbackIsDesigned = Some(true),
+        callOnNoChange = true,
+        id = DataRetrieveId("1_bankDetails")
+      )
+      val failure = DataRetrieveResult(
+        dataRetrieve.id,
+        RetrieveDataType.ObjectType(Map.empty),
+        Json.obj("accountNumber" -> "old"),
+        None,
+        None,
+        None,
+        hasFailed = Some(true)
+      )
+      val form = Form.dummy(FormTemplateId("4290"))
+      val savedForm = form.copy(thirdPartyData = form.thirdPartyData.updateDataRetrieve(List(failure)))
+      val resumedForm = Json.toJson(savedForm).as[Form]
+      val request = mkRequest(None, None).copy(params = List("accountNumber" -> "changed"))
+      val result = DataRetrieveService.retrieveDataResult(
+        dataRetrieve,
+        Some(resumedForm),
+        request,
+        Some(mockBankAccountReputationConnector),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None
+      )
+      whenReady(result) { result =>
+        result shouldBe None
+        verify(mockBankAccountReputationConnector, times(0))
+          .validateBankDetails(any[DataRetrieve], any[DataRetrieve.Request])(any[HeaderCarrier])
+        resumedForm.thirdPartyData.dataRetrieve.value(dataRetrieve.id).hasFailed shouldBe Some(true)
+      }
     }
   }
 
