@@ -574,6 +574,31 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
   )
 
+  private val ftaVerifyPodStatusB =
+    new DataRetrieveConnectorBlueprint(
+      httpClient,
+      baseUrl,
+      "fta verify pod status",
+      Some(
+        List(
+          ExceptionalResponse(
+            500,
+            "with statusCode: 400",
+            """[{"matchFound":false,"matchNotFoundReason":"Supplied Pod Reference value does not conform to the Pod Reference format 'PODnnnnnnnnnnnn'"}]"""
+          )
+        )
+      )
+    )
+
+  def ftaVerifyPodStatus(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaVerifyPodStatusB.getEmptyIfNotFound(
+    dataRetrieve,
+    request,
+    request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
+  )
+
   /** **** Tax Period *****
     */
   def getAllTaxPeriods(
