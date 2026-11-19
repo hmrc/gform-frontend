@@ -394,22 +394,33 @@ final class RealCalculator(
         case DataRetrieve.failureResetDateAttribute.name => DataRetrieveEval.getFailureResetDate(dr, dataRetrieveCtx)
         case _ =>
           DataRetrieveEval.getDataRetrieveAttribute(dr, dataRetrieveCtx) match {
-            case Some(value :: Nil) =>
-              val isNumber =
-                metadata.dataRetrieveAll.isNumber(dataRetrieveCtx.id.modelPageId.baseId, dataRetrieveCtx.attribute)
-              if (isNumber) {
-                BigDecimalUtil
-                  .toBigDecimalSafe(value)
-                  .fold[EvaluationStatus](
-                    EvaluationStatus.Invalid(s"Number - cannot convert '$value' to number")
-                  )(value => EvaluationStatus.NumberResult(value))
-              } else EvaluationStatus.StringResult(value)
-            case Some(xs) if xs.nonEmpty => EvaluationStatus.ListResult(xs.map(EvaluationStatus.StringResult))
-            case _                       => EvaluationStatus.Empty
+            case Some(value :: Nil) => applyTypeToDataRetrieveValue(value, dataRetrieveCtx)
+            case Some(xs) if xs.nonEmpty =>
+              EvaluationStatus.ListResult(xs.map(applyTypeToDataRetrieveValue(_, dataRetrieveCtx)))
+            case _ => EvaluationStatus.Empty
           }
-
       }
     }
+
+  private def applyTypeToDataRetrieveValue(value: String, dataRetrieveCtx: DataRetrieveCtx) = {
+    val isNumber =
+      metadata.dataRetrieveAll.isNumber(dataRetrieveCtx.id.modelPageId.baseId, dataRetrieveCtx.attribute)
+
+    val isDate =
+      metadata.dataRetrieveAll.isDate(dataRetrieveCtx.id.modelPageId.baseId, dataRetrieveCtx.attribute)
+
+    if (isNumber) {
+      BigDecimalUtil
+        .toBigDecimalSafe(value)
+        .fold[EvaluationStatus](
+          EvaluationStatus.Invalid(s"Number - cannot convert '$value' to number")
+        )(value => EvaluationStatus.NumberResult(value))
+    } else if (isDate) {
+      Try(LocalDate.parse(value)).toOption.fold[EvaluationStatus](
+        EvaluationStatus.Invalid(s"Date - cannot convert '$value' to date")
+      )(value => EvaluationStatus.DateResult.mkDate(value))
+    } else EvaluationStatus.StringResult(value)
+  }
 
   private def handleAddr(
     dataRetrieveCtx: DataRetrieveCtx,
