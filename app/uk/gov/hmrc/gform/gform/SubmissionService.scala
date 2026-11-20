@@ -22,6 +22,7 @@ import play.api.i18n.I18nSupport
 import play.api.libs.json.{ JsError, JsSuccess }
 import play.api.mvc.{ AnyContent, Request }
 import uk.gov.hmrc.gform.auditing.AuditService
+import uk.gov.hmrc.gform.bulkupload.BulkUploadService
 import uk.gov.hmrc.gform.controllers.AuthCacheWithForm
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.objectStore.{ Attachments, EnvelopeWithMapping, File, ObjectStoreService }
@@ -32,6 +33,7 @@ import uk.gov.hmrc.gform.models.{ SectionSelector, SectionSelectorType }
 import uk.gov.hmrc.gform.nonRepudiation.NonRepudiationHelpers
 import uk.gov.hmrc.gform.sharedmodel.SubmissionRef
 import uk.gov.hmrc.gform.sharedmodel.form.{ EnvelopeId, FileId, FormModelOptics, Signed }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.IsBulkUpload
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.DmsDestinationResponse
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ FileComponentId, FormComponent, IsFileUpload, IsMultiFileUpload }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, LangADT, VariadicFormData }
@@ -45,7 +47,8 @@ class SubmissionService(
   gformBackEnd: GformBackEndAlgebra[Future],
   nonRepudiationHelpers: NonRepudiationHelpers,
   auditService: AuditService,
-  objectStoreService: ObjectStoreService
+  objectStoreService: ObjectStoreService,
+  bulkUploadService: BulkUploadService[Future]
 )(implicit ec: ExecutionContext) {
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -71,6 +74,7 @@ class SubmissionService(
 
       val visibleFcIds: Set[FileComponentId] = visibleFc.collect {
         case fc @ IsFileUpload(_) if envelope.contains(fc.modelComponentId) => List(FileComponentId.Single(fc.id))
+        case fc @ IsBulkUpload(_) if envelope.contains(fc.modelComponentId) => List(FileComponentId.Single(fc.id))
         case fc @ IsMultiFileUpload(_) =>
           envelope.findMulti(fc.modelComponentId).map { case (fileComponentId, _) => fileComponentId }
       }.flatten
@@ -85,6 +89,13 @@ class SubmissionService(
     val submissionMark = nonRepudiationHelpers.computeHash(nonRepudiationHelpers.formDataToJson(cache.form))
 
     for {
+      _ <- bulkUploadService.syncObjectStoreFilesWithUserData(
+             cache.formTemplate._id,
+             cache.form.envelopeId,
+             envelope,
+             formModelOptics.formModelVisibilityOptics,
+             cache.form.thirdPartyData.bulkUploadLookup
+           )
       files <- cleanseEnvelope(cache.form.envelopeId, envelope, attachments)
       customerId = CustomerIdRecalculation.evaluateCustomerId(cache, formModelOptics.formModelVisibilityOptics)
       submissionRef = SubmissionRef(cache.formTemplate, cache.form.envelopeId, formModelVisibilityOptics)

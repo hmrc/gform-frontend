@@ -19,8 +19,9 @@ package uk.gov.hmrc.gform.models.optics
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.eval.{ ExprType, ExpressionResultWithTypeInfo, StaticTypeData, TypeInfo }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
-import uk.gov.hmrc.gform.models.FormModel
+import uk.gov.hmrc.gform.models.{ FormModel, PageModel }
 import uk.gov.hmrc.gform.recalculation.{ EvaluationStatus, FreeCalculator }
+import uk.gov.hmrc.gform.sharedmodel.SmartString
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
 import uk.gov.hmrc.gform.sharedmodel.VariadicValue
 
@@ -46,6 +47,20 @@ final class FormModelVisibilityOptics(
     freeCalculator.variadicFormData.collect(pf)
 
   def fcLookup: Map[FormComponentId, FormComponent] = formModel.fcLookup
+
+  def getBulkUploadFor(formComponentId: FormComponentId): (FormComponent, BulkUpload, Option[SmartString]) = {
+    val pageModel: PageModel = formModel.pageLookup(formComponentId)
+    val maybeFormComponent = fcLookup.get(formComponentId)
+
+    maybeFormComponent match {
+      case Some(fc @ IsBulkUpload(bulkUpload)) => (fc, bulkUpload, pageModel.caption)
+
+      case Some(formComponent) =>
+        throw new Exception(s"Bulk upload error. FormComponent for '${formComponent.id.value}' is not a bulkUpload")
+      case None =>
+        throw new Exception(s"Bulk upload error. Failed to find FormComponent for '${formComponentId.value}'")
+    }
+  }
 
   def toStaticTypeData(formComponentId: FormComponentId): StaticTypeData =
     freeCalculator.metadata.staticTypeInfo

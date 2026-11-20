@@ -42,7 +42,8 @@ class ThirdPartyDataSuite extends FunSuite {
       enteredAddresses = None,
       confirmedAddresses = None,
       itmpRetrievals = None,
-      confirmations = None
+      confirmations = None,
+      bulkUploadLookup = None
     )
 
     val expected =
@@ -125,7 +126,8 @@ class ThirdPartyDataSuite extends FunSuite {
           FormComponentId("fcId1") -> List("1", "2"),
           FormComponentId("fcId2") -> List("3", "4")
         )
-      )
+      ),
+      bulkUploadLookup = None
     )
     val expected =
       """|{
@@ -200,7 +202,8 @@ class ThirdPartyDataSuite extends FunSuite {
       enteredAddresses = None,
       confirmedAddresses = None,
       itmpRetrievals = None,
-      confirmations = None
+      confirmations = None,
+      bulkUploadLookup = None
     )
 
     thirdPartyData = thirdPartyData.removeDataRetrieveData(
@@ -236,6 +239,7 @@ class ThirdPartyDataSuite extends FunSuite {
       QueryParams.empty,
       None,
       booleanExprCache,
+      None,
       None,
       None,
       None,

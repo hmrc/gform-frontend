@@ -349,6 +349,49 @@ object FormComponentSummaryRenderer {
           keyDisplayWidth
         )
 
+      case IsBulkUpload(_) =>
+        val hasErrors = formFieldValidationResult.isNotOk
+
+        val errors = checkErrors(formComponent, formFieldValidationResult)
+
+        val label = fcrd.label(formComponent, formModelVisibilityOptics.freeCalculator)
+
+        val visuallyHiddenText = getVisuallyHiddenText(formComponent)
+
+        val keyClasses = getKeyClasses(hasErrors, keyDisplayWidth)
+
+        val value = if (hasErrors) errors.head else HtmlFormat.escape(envelope.userFileName(formComponent))
+
+        List(
+          summaryListRow(
+            label,
+            value,
+            visuallyHiddenText,
+            keyClasses,
+            "",
+            "", {
+              val changeOrViewLabel =
+                if (formComponent.editable) messages("summary.change") else messages("summary.view")
+              List(
+                (
+                  uk.gov.hmrc.gform.gform.routes.FormController
+                    .form(
+                      formTemplateId,
+                      maybeAccessCode,
+                      sectionNumber,
+                      sectionTitle4Ga,
+                      SuppressErrors.Yes,
+                      fastForward
+                    ),
+                  changeOrViewLabel,
+                  iterationTitle.fold(changeOrViewLabel + " " + label)(it => changeOrViewLabel + " " + it + " " + label)
+                )
+              )
+            },
+            ""
+          )
+        )
+
       case otherFormComponent => throw new Exception(s"$otherFormComponent is not supported in summary list row")
     }
 

@@ -24,6 +24,7 @@ import cats.data.NonEmptyList
 import julienrf.json.derived
 import play.api.i18n.Messages
 import play.api.libs.json._
+import uk.gov.hmrc.gform.bulkupload.ColumnIndex
 import uk.gov.hmrc.gform.eval.smartstring._
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluator
 import uk.gov.hmrc.gform.models.Atom
@@ -66,6 +67,7 @@ sealed trait ComponentType {
     case _: MiniSummaryList    => "miniSummaryList"
     case _: TableComp          => "table"
     case _: Button             => "button"
+    case _: BulkUpload         => "bulkUpload"
   }
 }
 
@@ -743,6 +745,69 @@ case class Button(
 
 object Button {
   implicit val format: Format[Button] = derived.oformat()
+}
+
+case class BulkUpload(
+  subjectForms: SubjectForms,
+  spreadsheet: List[SpreadsheetColumn],
+  fileSizeLimit: Option[Int]
+) extends ComponentType {
+  def columnFor(columnIndex: ColumnIndex): SpreadsheetColumn =
+    spreadsheet
+      .lift(columnIndex.index)
+      .getOrElse(
+        throw new Exception(
+          s"Error when accessing spreadsheet column index: '${columnIndex.index}' only ${spreadsheet.size} columns present"
+        )
+      )
+}
+
+object BulkUpload {
+  implicit val format: Format[BulkUpload] = derived.oformat()
+}
+
+final case class SubjectForms(
+  singular: SmartString,
+  plural: SmartString
+) {
+  def value(i: Int)(implicit sse: SmartStringEvaluator): String = if (i > 1) plural.value() else singular.value()
+}
+
+object SubjectForms {
+  implicit val format: Format[SubjectForms] = derived.oformat()
+}
+
+final case class SpreadsheetColumn(
+  title: String, // Handle only english spreadsheet
+  mandatory: Boolean,
+  role: Option[DataRole],
+  `type`: ColumnType
+) {
+  def isPrimary(): Boolean = role.contains(DataRole.Primary)
+  def isSecondary(): Boolean = role.contains(DataRole.Secondary)
+}
+
+object SpreadsheetColumn {
+  implicit val format: Format[SpreadsheetColumn] = derived.oformat()
+}
+
+sealed trait DataRole extends Product with Serializable
+
+object DataRole {
+  case object Primary extends DataRole
+  case object Secondary extends DataRole
+
+  implicit val format: Format[DataRole] = derived.oformat()
+}
+
+sealed trait ColumnType extends Product with Serializable
+
+object ColumnType {
+  case object Text extends ColumnType
+  case object Date extends ColumnType
+  case object Number extends ColumnType
+
+  implicit val format: Format[ColumnType] = derived.oformat()
 }
 
 object ComponentType {

@@ -26,6 +26,7 @@ import play.api.mvc.{ AnyContentAsEmpty, Request }
 import play.api.test.FakeRequest
 import uk.gov.hmrc.gform.Helpers.toSmartString
 import uk.gov.hmrc.gform.auth.models.Role
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm }
 import uk.gov.hmrc.gform.eval.smartstring.{ RealSmartStringEvaluatorFactory, SmartStringEvaluator }
@@ -107,7 +108,9 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
       retrievals = authContext,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      addressRecordLookup = AddressRecordLookup.from(ThirdPartyData.empty)
+      addressRecordLookup = AddressRecordLookup.from(ThirdPartyData.empty),
+      fastForward = List.empty[FastForward],
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
 
     implicit lazy val smartStringEvaluator: SmartStringEvaluator = new RealSmartStringEvaluatorFactory(messages)
@@ -216,7 +219,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         List(FastForward.Yes),
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Map.empty[FormComponentId, BulkUploadResult]
       )
 
     val phoneField = Jsoup.parse(generatedHtml.body).getElementById("phoneNumber")
@@ -257,7 +261,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         List(FastForward.Yes),
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Map.empty[FormComponentId, BulkUploadResult]
       )
 
     val textFieldHtml = Jsoup.parse(generatedHtml.body).getElementsByClass("govuk-label")
@@ -297,7 +302,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         List(FastForward.Yes),
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Map.empty[FormComponentId, BulkUploadResult]
       )
 
     val textFieldHtml: Elements = Jsoup.parse(generatedHtml.body).select("button[type=submit][class=govuk-button]")
@@ -342,7 +348,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
         List(FastForward.Yes),
         formModelOptics,
         UpscanInitiate.empty,
-        AddressRecordLookup.from(ThirdPartyData.empty)
+        AddressRecordLookup.from(ThirdPartyData.empty),
+        Map.empty[FormComponentId, BulkUploadResult]
       )
 
     Jsoup.parse(generatedHtml.body).title() shouldBe "Some title without PII - AAA999 dev test template - GOV.UK"
@@ -435,7 +442,8 @@ class SectionRenderingServiceSpec extends Spec with ArgumentMatchersSugar with I
             List(FastForward.Yes),
             formModelOptics,
             UpscanInitiate.empty,
-            AddressRecordLookup.from(ThirdPartyData.empty)
+            AddressRecordLookup.from(ThirdPartyData.empty),
+            Map.empty[FormComponentId, BulkUploadResult]
           )
           .body
       )

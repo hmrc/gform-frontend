@@ -30,6 +30,7 @@ import org.typelevel.ci.CIString
 import play.api.libs.json.{ JsString, JsValue, Json }
 import uk.gov.hmrc.crypto.Crypted
 import uk.gov.hmrc.gform.auth.models.{ EmailRetrievals, MaterialisedRetrievals }
+import uk.gov.hmrc.gform.bulkupload.{ BulkUploadData, BulkUploadObjectStoreData, BulkUploadResult }
 import uk.gov.hmrc.gform.gform.{ CustomerId, DataRetrieveConnectorBlueprint, ExceptionalResponse }
 import uk.gov.hmrc.gform.models.EmailId
 import uk.gov.hmrc.gform.objectStore.Envelope
@@ -472,6 +473,14 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     httpClient.delete(url"$baseUrl/forms/${formId.value}/deleteFile/${fileId.value}").execute[HttpResponse].void
 
+  def downloadBulkUploadData(envelopeId: EnvelopeId, fileName: String)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[BulkUploadData] = {
+    val url = url"$baseUrl/object-store/data-file/${envelopeId.value}/$fileName"
+    httpClient.get(url).execute[BulkUploadData]
+  }
+
   private val organisationB =
     new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "organisation")
 
@@ -898,6 +907,37 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
         }
     }
 
+  }
+
+  def downloadBulkUploadSpreadsheet(
+    formTemplateId: FormTemplateId,
+    formComponentId: FormComponentId,
+    bulkUpload: BulkUpload
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/bulk-upload/generate-xlsx/${formTemplateId.value}/${formComponentId.value}"
+    val payload = Json.toJson(bulkUpload)
+
+    httpClient
+      .post(url"$url")
+      .withBody(payload)
+      .stream[HttpResponse]
+  }
+
+  def createBulkUploadSpreadsheetFromData(
+    envelopeId: EnvelopeId,
+    fileName: String,
+    formTemplateId: FormTemplateId,
+    formComponentId: FormComponentId,
+    bulkUpload: BulkUpload,
+    bulkUploadResult: BulkUploadResult.Ok
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] = {
+    val url = s"$baseUrl/bulk-upload/upload-xlsx/${formTemplateId.value}/${formComponentId.value}"
+    val payload = Json.toJson(BulkUploadObjectStoreData(envelopeId, fileName, bulkUpload, bulkUploadResult))
+
+    httpClient
+      .post(url"$url")
+      .withBody(payload)
+      .execute[HttpResponse]
   }
 
   def changeOverrides(formTemplateId: FormTemplateId, overrides: Overrides)(implicit

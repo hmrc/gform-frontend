@@ -237,6 +237,17 @@ class ComponentsValidator(
         case MiniSummaryList(_, _, _) => validationSuccess
         case _: TableComp             => validationSuccess
         case _: Button                => validationSuccess
+        case _: BulkUpload =>
+          Monoid[ValidatedType[Unit]].combineAll(
+            List(
+              validIf(
+                new FileUploadChecker().runCheck(checkerDependency)
+              ),
+              validIf(
+                new BulkUploadChecker().runCheck(checkerDependency)
+              )
+            )
+          )
       }
 
     }

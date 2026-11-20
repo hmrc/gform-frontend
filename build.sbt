@@ -40,6 +40,7 @@ lazy val microservice = (project in file("."))
     dependencyOverrides ++= appDependencyOverrides,
     routesImport ++= Seq(
       "uk.gov.hmrc.gform.binders.ValueClassBinder._",
+      "uk.gov.hmrc.gform.bulkupload.{ColumnIndex, RowIndex}",
       "uk.gov.hmrc.gform.controllers.Direction",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations._",
       "uk.gov.hmrc.gform.sharedmodel.formtemplate._",
