@@ -28,6 +28,7 @@ import play.twirl.api.{ Html, HtmlFormat }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.commons.MarkDownUtil.markDownParser
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions }
 import uk.gov.hmrc.gform.eval.smartstring.{ SmartStringEvaluationSyntax, SmartStringEvaluator }
@@ -599,7 +600,9 @@ class BuilderController(
               retrievals = cache.retrievals,
               formLevelHeading = false,
               specialAttributes = Map.empty[String, String],
-              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData),
+              fastForward = List.empty[FastForward],
+              bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
             )
 
             val formComponentHtml = renderer.htmlFor(
@@ -675,7 +678,9 @@ class BuilderController(
           retrievals = cache.retrievals,
           formLevelHeading = formLevelHeading,
           specialAttributes = Map.empty[String, String],
-          addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+          addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData),
+          fastForward = List.empty[FastForward],
+          bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
         )
         val obligations: Obligations = NotChecked
 
@@ -853,7 +858,9 @@ class BuilderController(
               retrievals = cache.retrievals,
               formLevelHeading = false,
               specialAttributes = Map.empty[String, String],
-              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+              addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData),
+              fastForward = List.empty[FastForward],
+              bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
             )
 
             val formComponentHtml = renderer.htmlFor(

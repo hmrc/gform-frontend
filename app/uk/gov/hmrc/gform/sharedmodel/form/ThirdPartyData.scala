@@ -21,6 +21,7 @@ import cats.implicits._
 import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.gform.addresslookup.{ AddressLookupResult, PostcodeLookupRetrieve }
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
+import uk.gov.hmrc.gform.bulkupload.{ BulkUploadResult, ColumnIndex, RowIndex }
 import uk.gov.hmrc.gform.models.Atom
 import uk.gov.hmrc.gform.models.email.{ EmailFieldId, emailFieldId }
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
@@ -39,7 +40,8 @@ case class ThirdPartyData(
   enteredAddresses: Option[Map[FormComponentId, FormData]],
   confirmedAddresses: Option[Set[FormComponentId]],
   itmpRetrievals: Option[ItmpRetrievals],
-  confirmations: Option[Map[FormComponentId, List[String]]]
+  confirmations: Option[Map[FormComponentId, List[String]]],
+  bulkUploadLookup: Option[Map[FormComponentId, BulkUploadResult]]
 ) {
 
   def confirmAddress(formComponentId: FormComponentId): ThirdPartyData =
@@ -254,6 +256,49 @@ case class ThirdPartyData(
 
   def updateConfirmations(confirmations: Option[Map[FormComponentId, List[String]]]): ThirdPartyData =
     this.copy(confirmations = confirmations)
+
+  def deleteBulkUpload(formComponentId: FormComponentId): ThirdPartyData = {
+    val updatedUploadBulkLookup = bulkUploadLookup.getOrElse(Map.empty) - formComponentId
+    this.copy(bulkUploadLookup = Some(updatedUploadBulkLookup))
+  }
+
+  def updateBulkUpload(formComponentId: FormComponentId, bulkUploadResult: BulkUploadResult): ThirdPartyData = {
+    val updatedUploadBulkLookup = bulkUploadLookup.getOrElse(Map.empty) + (formComponentId -> bulkUploadResult)
+    this.copy(bulkUploadLookup = Some(updatedUploadBulkLookup))
+  }
+
+  def bulkUploadFor(formComponentId: FormComponentId): BulkUploadResult = {
+    val lookup = bulkUploadLookup.getOrElse(
+      throw new Exception(s"Error when accessing '$formComponentId' bulkUpload - bulkUploadLookup is empty")
+    )
+
+    lookup.getOrElse(
+      formComponentId, {
+        val existingIds = lookup.keys.mkString(",")
+        throw new Exception(
+          s"Error when accessing '$formComponentId' bulkUpload - bulkUploadLookup contains only '$existingIds'"
+        )
+      }
+    )
+  }
+
+  def bulkUploadForCell(formComponentId: FormComponentId, columnIndex: ColumnIndex, rowIndex: RowIndex): String = {
+    val rows = bulkUploadFor(formComponentId).merge()
+    val row = rows
+      .lift(rowIndex.index)
+      .getOrElse(
+        throw new Exception(
+          s"Error when accessing '$formComponentId' bulkUpload - row '${rowIndex.index}' out of bound, only ${rows.size} rows exists"
+        )
+      )
+    row
+      .lift(columnIndex.index)
+      .getOrElse(
+        throw new Exception(
+          s"Error when accessing '$formComponentId' bulkUpload - column '${columnIndex.index}' out of bound, only ${row.size} columns exists"
+        )
+      )
+  }
 }
 
 object ThirdPartyData {
@@ -264,6 +309,7 @@ object ThirdPartyData {
       QueryParams.empty,
       None,
       BooleanExprCache.empty,
+      None,
       None,
       None,
       None,
@@ -285,6 +331,8 @@ object ThirdPartyData {
   implicit val formatFormComponentId: Format[FormComponentId] =
     implicitly[Format[String]].bimap(FormComponentId(_), _.value)
   implicit val formatConfirmations: Format[Map[FormComponentId, List[String]]] =
+    JsonUtils.formatMap(FormComponentId(_), _.value)
+  implicit val formatBulkUploadLookup: Format[Map[FormComponentId, BulkUploadResult]] =
     JsonUtils.formatMap(FormComponentId(_), _.value)
 
   implicit val format: OFormat[ThirdPartyData] = Json.format

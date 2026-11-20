@@ -33,6 +33,74 @@ object FormModelOpticsTests3 extends DependencyGraphFixture {
 
   val data = List(
     (
+      MongoUserData(),
+      List(),
+      EvaluationContext.empty,
+      AnswerMap(),
+      List(
+        "printAcknowledgementPdf: /acknowledgement/pdf/link-ctx?v=static-value",
+        "printSummaryPdf: /summary/pdf/link-ctx?v=static-value",
+        "newForm.other-template-id: /new-form/othertemplateid/clean",
+        "newForm: /new-form/link-ctx",
+        "newSession: /new-form/link-ctx/session",
+        "newSession: /new-form/link-ctx/session",
+        "download: /download?filename=attachement.pdf",
+        "image: /image-file/link-ctx/-?fileName=nature.jpg",
+        "pageId: /form/section/link-ctx/-/n0",
+        "link: /redirect?redirectUrl=https%3A%2F%2Fwww.hmrc.gov.uk%2Fsubmissions"
+      ),
+      "link-ctx.json Generated"
+    ),
+    (
+      MongoUserData(
+        "1_addAnotherField" -> Many(List("0")),
+        "1_atlDummy"        -> One("Dummy 1"),
+        "1_name"            -> One("AAA"),
+        "2_addAnotherField" -> Many(List("0")),
+        "2_atlDummy"        -> One("Dummy 2"),
+        "2_name"            -> One("BBB"),
+        "3_addAnotherField" -> Many(List("1")),
+        "3_atlDummy"        -> One("Dummy 3"),
+        "3_name"            -> One("CCC"),
+        "dummy"             -> One("AAA"),
+        "finalDummy"        -> One("DDD")
+      ),
+      List(
+        "n0",
+        "ap1.1.0",
+        "ap1.1.1",
+        "ar1.1",
+        "ap1.2.0",
+        "ap1.2.1",
+        "ar1.2",
+        "ap1.3.0",
+        "ap1.3.1",
+        "ar1.3",
+        "n2"
+      ),
+      EvaluationContext.empty,
+      AnswerMap(),
+      List(
+        "[Refresh this page](/form/section/link-ctx-page-id-link/-/n0)",
+        "<p><a href=\"/form/section/link-ctx-page-id-link/-/n0\" target=\"_blank\" class=\"govuk-link\">Refresh this page</a></p>",
+        "[Go to previous page](/form/section/link-ctx-page-id-link/-/ap1.1.0)",
+        "<p><a href=\"/form/section/link-ctx-page-id-link/-/ap1.1.0\" target=\"_blank\" class=\"govuk-link\">Go to previous page</a></p>",
+        "AAA 1",
+        "<p>AAA 1</p>",
+        "[Go to previous page](/form/section/link-ctx-page-id-link/-/ap1.2.0)",
+        "<p><a href=\"/form/section/link-ctx-page-id-link/-/ap1.2.0\" target=\"_blank\" class=\"govuk-link\">Go to previous page</a></p>",
+        "BBB 2",
+        "<p>BBB 2</p>",
+        "[Go to previous page](/form/section/link-ctx-page-id-link/-/ap1.3.0)",
+        "<p><a href=\"/form/section/link-ctx-page-id-link/-/ap1.3.0\" target=\"_blank\" class=\"govuk-link\">Go to previous page</a></p>",
+        "CCC 3",
+        "<p>CCC 3</p>",
+        "[Go back and add or remove goods items](/form/section/link-ctx-page-id-link/-/ar1.3)",
+        "<p><a href=\"/form/section/link-ctx-page-id-link/-/ar1.3\" target=\"_blank\" class=\"govuk-link\">Go back and add or remove goods items</a></p>"
+      ),
+      "link-ctx-page-id-link.json Generated"
+    ),
+    (
       MongoUserData(
         "1_addAnother"         -> Many(List("0")),
         "1_importerDate-day"   -> One("1"),

@@ -26,6 +26,7 @@ import uk.gov.hmrc.gform.api.{ BankAccountInsightsAsyncConnector, CompanyInforma
 import uk.gov.hmrc.gform.auditing.AuditingModule
 import uk.gov.hmrc.gform.auth.{ AgentEnrolmentController, AuthModule, ErrorController }
 import uk.gov.hmrc.gform.bars.BankAccountReputationAsyncConnector
+import uk.gov.hmrc.gform.bulkupload.{ BulkUploadController, BulkUploadService }
 import uk.gov.hmrc.gform.payment.PaymentController
 import uk.gov.hmrc.gform.capture.CaptureController
 import uk.gov.hmrc.gform.config.ConfigModule
@@ -253,12 +254,15 @@ class GformModule(
 
   val nonRepudiationHelpers = new NonRepudiationHelpers(auditingModule)
 
+  val bulkUploadService: BulkUploadService[Future] = BulkUploadService(gformBackendModule.gformConnector)
+
   val submissionService = new SubmissionService(
     playBuiltInsModule.i18nSupport,
     gformBackEndService,
     nonRepudiationHelpers,
     auditingModule.auditService,
-    objectStoreModule.objectStoreService
+    objectStoreModule.objectStoreService,
+    bulkUploadService
   )
 
   val fopService = new FopService(configModule.environment)
@@ -414,6 +418,7 @@ class GformModule(
       controllersModule.authenticatedRequestActions,
       fastForwardService,
       gformBackEndService,
+      gformBackendModule.gformConnector,
       upscanModule.upscanService,
       playBuiltInsModule.i18nSupport,
       controllersModule.messagesControllerComponents,
@@ -475,6 +480,17 @@ class GformModule(
       fastForwardService,
       controllersModule.messagesControllerComponents
     )
+
+  val bulkUploadController: BulkUploadController = new BulkUploadController(
+    controllersModule.authenticatedRequestActions,
+    bulkUploadService,
+    configModule.frontendAppConfig,
+    playBuiltInsModule.i18nSupport,
+    controllersModule.messagesControllerComponents,
+    formControllerRequestHandler,
+    fastForwardService,
+    gformBackendModule.gformConnector
+  )
 
   private val allowedHosts = configModule.typesafeConfig.getStringList("redirectAllowedHosts").asScala.toSet
   private val redirectUrlPolicy = AbsoluteWithHostnameFromAllowlist(allowedHosts)

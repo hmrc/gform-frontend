@@ -190,11 +190,15 @@ class ObjectStoreController(
             logger.info(
               s"Deleting file ${fileToDelete.value} from envelope associated with component $fileComponentId."
             )
+            val formComponentId = fileComponentId.toModelComponentId().toFormComponentId
+            val thirdPartyDataUpd = cacheU.form.thirdPartyData.deleteBulkUpload(formComponentId)
             val cacheWithFileRemoved = cacheU
               .modify(_.form.formData)
               .setTo(formDataUpd)
               .modify(_.form.componentIdToFileId)
               .setTo(mappingUpd)
+              .modify(_.form.thirdPartyData)
+              .setTo(thirdPartyDataUpd)
 
             for {
               _ <- objectStoreService.deleteFile(cacheWithFileRemoved.form.envelopeId, fileToDelete)

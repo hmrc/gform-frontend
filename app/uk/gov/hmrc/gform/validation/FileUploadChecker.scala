@@ -56,11 +56,11 @@ class FileUploadChecker() extends ComponentChecker[Unit] {
     val formComponent: FormComponent = context.formComponent
     val envelope: EnvelopeWithMapping = context.envelope
 
-    val isMultiFileUplaod = formComponent match {
+    val isMultiFileUpload = formComponent match {
       case IsMultiFileUpload(_) => true
       case _                    => false
     }
-    val file: Option[File] = if (isMultiFileUplaod) {
+    val file: Option[File] = if (isMultiFileUpload) {
       val files: List[(FileComponentId, File)] = envelope.findMulti(formComponent.id.modelComponentId)
       files.headOption.map { case (_, file) => file }
     } else {

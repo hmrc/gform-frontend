@@ -203,7 +203,7 @@ object PDFPageFieldBuilder {
           List.empty[SimpleField]
         }
 
-      case IsFileUpload(_) =>
+      case IsFileUpload(_) | IsBulkUpload(_) =>
         List(
           SimpleField(
             getFormComponentLabel(formComponent),

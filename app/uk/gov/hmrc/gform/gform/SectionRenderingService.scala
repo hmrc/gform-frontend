@@ -29,6 +29,7 @@ import play.api.i18n.Messages
 import play.api.mvc.{ Request, RequestHeader }
 import play.twirl.api.{ Html, HtmlFormat }
 import uk.gov.hmrc.auth.core.Enrolments
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.config.FileInfoConfig
 import uk.gov.hmrc.gform.models.{ AddToListSummaryRow, Atom, Bracket, CheckYourAnswers, DateExpr, FastForward, FileUploadUtils, FormModel, PageModel, Repeater, SectionRenderingInformation, Singleton }
 import uk.gov.hmrc.gform.monoidHtml
@@ -207,7 +208,9 @@ class SectionRenderingService(
                 retrievals = cache.retrievals,
                 formLevelHeading = false,
                 specialAttributes = Map.empty[String, String],
-                addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData)
+                addressRecordLookup = AddressRecordLookup.from(cache.form.thirdPartyData),
+                fastForward = fastForward,
+                bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
               )
               htmlForMiniSummaryList(
                 fc,
@@ -297,7 +300,9 @@ class SectionRenderingService(
       cache.retrievals,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      AddressRecordLookup.from(cache.form.thirdPartyData)
+      AddressRecordLookup.from(cache.form.thirdPartyData),
+      fastForward = fastForward,
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
 
     val infoFields = declarationPage.page.fields
@@ -549,7 +554,9 @@ class SectionRenderingService(
                 retrievals = retrievals,
                 formLevelHeading = false,
                 specialAttributes = Map.empty[String, String],
-                addressRecordLookup = AddressRecordLookup.from(form.thirdPartyData)
+                addressRecordLookup = AddressRecordLookup.from(form.thirdPartyData),
+                fastForward = fastForward,
+                bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
               )
               htmlForMiniSummaryList(
                 fc,
@@ -780,7 +787,8 @@ class SectionRenderingService(
     fastForward: List[FastForward],
     formModelOptics: FormModelOptics,
     upscanInitiate: UpscanInitiate,
-    addressRecordLookup: AddressRecordLookup
+    addressRecordLookup: AddressRecordLookup,
+    bulkUploadLookup: Map[FormComponentId, BulkUploadResult]
   )(implicit
     request: Request[_],
     messages: Messages,
@@ -804,7 +812,9 @@ class SectionRenderingService(
       retrievals,
       formLevelHeading,
       specialAttributes = Map.empty,
-      addressRecordLookup
+      addressRecordLookup,
+      fastForward = fastForward,
+      bulkUploadLookup = bulkUploadLookup
     )
     val actionForm: Call = uk.gov.hmrc.gform.gform.routes.FormController
       .updateFormData(formTemplate._id, maybeAccessCode, sectionNumber, fastForward, SaveAndContinue)
@@ -834,11 +844,13 @@ class SectionRenderingService(
     val fileUploadComponents: List[FormComponent] = formComponents.collect {
       case fc @ IsFileUpload(_)      => fc
       case fc @ IsMultiFileUpload(_) => fc
+      case fc @ IsBulkUpload(_)      => fc
     }
 
     val fileUploadMaxSize: Map[FormComponentId, Int] = formComponents.collect {
       case fc @ IsFileUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
       case fc @ IsMultiFileUpload(fu) => fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
+      case fc @ IsBulkUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(ei.formMaxAttachmentSizeMB)
     }.toMap
 
     val upscanData: Map[FormComponentId, UpscanData] =
@@ -1135,7 +1147,9 @@ class SectionRenderingService(
       retrievals,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      AddressRecordLookup.from(cache.form.thirdPartyData)
+      AddressRecordLookup.from(cache.form.thirdPartyData),
+      fastForward = List.empty[FastForward],
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
 
     val snippets = page.renderUnits.map(renderUnit =>
@@ -1178,7 +1192,9 @@ class SectionRenderingService(
       retrievals,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      AddressRecordLookup.from(ThirdPartyData.empty)
+      AddressRecordLookup.from(ThirdPartyData.empty),
+      fastForward = List.empty[FastForward],
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
 
     val declarationPage = singleton.page
@@ -1289,7 +1305,9 @@ class SectionRenderingService(
       retrievals,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      AddressRecordLookup.from(ThirdPartyData.empty)
+      AddressRecordLookup.from(ThirdPartyData.empty),
+      fastForward = List.empty[FastForward],
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
 
     val declarationPage = singleton.page
@@ -1441,7 +1459,9 @@ class SectionRenderingService(
       retrievals,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      AddressRecordLookup.from(cache.form.thirdPartyData)
+      AddressRecordLookup.from(cache.form.thirdPartyData),
+      fastForward = List.empty[FastForward],
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
 
     val formCategory = formTemplate.formCategory
@@ -1546,7 +1566,9 @@ class SectionRenderingService(
       emptyRetrievals,
       formLevelHeading = false,
       specialAttributes = Map.empty,
-      AddressRecordLookup.from(ThirdPartyData.empty)
+      AddressRecordLookup.from(ThirdPartyData.empty),
+      fastForward = List.empty[FastForward],
+      bulkUploadLookup = Map.empty[FormComponentId, BulkUploadResult]
     )
     val page = singleton.page
     val listResult = validationResult.formFieldValidationResults(singleton)
@@ -1784,8 +1806,9 @@ class SectionRenderingService(
               obligations,
               keyDisplayWidth.getOrElse(KeyDisplayWidth.S)
             )
-          case t: TableComp => htmlForTableComp(formComponent, t, ei.formModelOptics)
-          case b: Button    => htmlForButton(formComponent, b, ei)
+          case t: TableComp  => htmlForTableComp(formComponent, t, ei.formModelOptics)
+          case b: Button     => htmlForButton(formComponent, b, ei)
+          case b: BulkUpload => htmlForBulkUpload(formComponent, b, ei, validationResult, upscanData)
         }
       }
     } { case r @ RenderUnit.Group(_, _) =>
@@ -2485,12 +2508,46 @@ class SectionRenderingService(
           FileUploadUtils.formatSize(fileSize)
         )
 
+    val (downloadLink, viewSubjectsLink) = formComponent match {
+      case IsBulkUpload(bulkUpload) =>
+        val viewDataCall = uk.gov.hmrc.gform.bulkupload.routes.BulkUploadController
+          .renderUploadedData(
+            formTemplateId,
+            ei.maybeAccessCode,
+            formComponent.id,
+            ei.sectionNumber,
+            ei.fastForward
+          )
+
+        val downloadLink = uk.gov.hmrc.gform.bulkupload.routes.BulkUploadController
+          .downloadSpreadsheet(
+            formTemplateId,
+            ei.maybeAccessCode,
+            formComponent.id
+          )
+        (
+          html.bulkupload.bulk_upload_link(
+            messages("bulk.upload.link.download.template", bulkUpload.subjectForms.singular.value()),
+            downloadLink
+          ),
+          if (ei.bulkUploadLookup.get(formComponent.id).fold(false)(_.hasGlobalError)) {
+            HtmlFormat.empty
+          } else
+            html.bulkupload
+              .bulk_upload_link(
+                messages("bulk.upload.link.view.subjects", bulkUpload.subjectForms.plural.value()),
+                viewDataCall
+              )
+        )
+      case _ => (HtmlFormat.empty, HtmlFormat.empty)
+    }
+
     currentValue match {
       case Some(v) =>
         val fileName = v.replace(fileId.value + "_", "")
         val hiddenInput = html.form.snippets.hidden(formComponent.id.value, fileName)
-        HtmlFormat.fill(List(hiddenInput, uploadedFiles))
-      case None => HtmlFormat.fill(List(fileInput, uploadedFiles, submitButtonHtml))
+        HtmlFormat.fill(List(hiddenInput, uploadedFiles, viewSubjectsLink))
+      case None => HtmlFormat.fill(List(fileInput, uploadedFiles, downloadLink, submitButtonHtml))
     }
   }
 
@@ -2625,6 +2682,30 @@ class SectionRenderingService(
       case (true, false) => HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml, continueText))
       case (false, _)    => HtmlFormat.fill(List(hint, uploadedFiles, fileInput, submitButtonHtml))
     }
+  }
+
+  private def htmlForBulkUpload(
+    formComponent: FormComponent,
+    bulkUpload: BulkUpload,
+    ei: ExtraInfo,
+    validationResult: ValidationResult,
+    upscanData: Map[FormComponentId, UpscanData]
+    //bulkUploadLookup: BulkUploadLookup
+  )(implicit
+    messages: Messages,
+    l: LangADT,
+    sse: SmartStringEvaluator
+  ): Html = {
+
+    val allowedFileTypes: String = AllowedFileTypes(NonEmptyList.of("xlsx", "ods")).contentTypes.toList
+      .map(_.value)
+      .mkString(", ")
+
+    val additionalAttributes = Map("accept" -> allowedFileTypes)
+
+    val html = htmlForFileUploadStandard(formComponent, ei, validationResult, upscanData, additionalAttributes)
+
+    html
   }
 
   private def hasNotBeenSelectedYet(

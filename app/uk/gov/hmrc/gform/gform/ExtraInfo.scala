@@ -19,6 +19,7 @@ package uk.gov.hmrc.gform.gform
 import cats.syntax.all._
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.auth.models.MaterialisedRetrievals
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.controllers.SaveAndExit
 import uk.gov.hmrc.gform.models.ids.ModelComponentId
 import uk.gov.hmrc.gform.models.{ FastForward, Singleton }
@@ -45,7 +46,9 @@ final case class ExtraInfo(
   retrievals: MaterialisedRetrievals,
   formLevelHeading: Boolean,
   specialAttributes: Map[String, String],
-  addressRecordLookup: AddressRecordLookup
+  addressRecordLookup: AddressRecordLookup,
+  fastForward: List[FastForward],
+  bulkUploadLookup: Map[FormComponentId, BulkUploadResult]
 ) {
 
   val formTemplateId = formTemplate._id

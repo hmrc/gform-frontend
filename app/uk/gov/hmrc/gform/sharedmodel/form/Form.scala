@@ -25,6 +25,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.gform.addresslookup.AddressLookupResult
 import uk.gov.hmrc.gform.auth.models.ItmpRetrievals
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.models.email.EmailFieldId
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.sharedmodel.formtemplate._
@@ -78,7 +79,8 @@ object Form {
       Option.empty[Map[FormComponentId, FormData]],
       Option.empty[Set[FormComponentId]],
       Option.empty[ItmpRetrievals],
-      Option.empty[Map[FormComponentId, List[String]]]
+      Option.empty[Map[FormComponentId, List[String]]],
+      Option.empty[Map[FormComponentId, BulkUploadResult]]
     ),
     Option.empty[EnvelopeExpiryDate],
     FormComponentIdToFileIdMapping.empty,
