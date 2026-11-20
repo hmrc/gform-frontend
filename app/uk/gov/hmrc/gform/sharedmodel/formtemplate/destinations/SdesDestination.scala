@@ -22,18 +22,19 @@ import uk.gov.hmrc.gform.sharedmodel.formtemplate.ADTFormat
 
 sealed trait SdesDestination extends Product with Serializable {
   def downloadPath: String = this match {
-    case SdesDestination.HmrcIlluminate                              => "hmrc-illuminate"
-    case SdesDestination.DataStore | SdesDestination.DataStoreLegacy => "data-store"
-    case SdesDestination.Dms                                         => "dms"
-    case SdesDestination.Caseflow                                    => "caseflow"
-    case SdesDestination.Pega                                        => "pega"
-    case SdesDestination.InfoArchive                                 => "info-archive"
-    case SdesDestination.DataLakehouse                               => "data-lakehouse"
+    case SdesDestination.HmrcIlluminate                                                             => "hmrc-illuminate"
+    case SdesDestination.DataStore | SdesDestination.DataStoreScr | SdesDestination.DataStoreLegacy => "data-store"
+    case SdesDestination.Dms                                                                        => "dms"
+    case SdesDestination.Caseflow                                                                   => "caseflow"
+    case SdesDestination.Pega                                                                       => "pega"
+    case SdesDestination.InfoArchive                                                                => "info-archive"
+    case SdesDestination.DataLakehouse                                                              => "data-lakehouse"
   }
 
   def description: String = this match {
     case SdesDestination.HmrcIlluminate  => "HMRC Illuminate"
     case SdesDestination.DataStore       => "Data Store"
+    case SdesDestination.DataStoreScr    => "Data Store SCR"
     case SdesDestination.DataStoreLegacy => "Data Store (Legacy)"
     case SdesDestination.Dms             => "DMS"
     case SdesDestination.InfoArchive     => "InfoArchive"
@@ -45,19 +46,13 @@ sealed trait SdesDestination extends Product with Serializable {
 
 object SdesDestination {
   case object Dms extends SdesDestination
-
   case object HmrcIlluminate extends SdesDestination
-
   case object DataStoreLegacy extends SdesDestination // Alias for HmrcIlluminate (deprecated)
-
   case object DataStore extends SdesDestination
-
+  case object DataStoreScr extends SdesDestination
   case object InfoArchive extends SdesDestination
-
   case object Caseflow extends SdesDestination
-
   case object Pega extends SdesDestination
-
   case object DataLakehouse extends SdesDestination
 
   implicit val equal: Eq[SdesDestination] = Eq.fromUniversalEquals
@@ -68,6 +63,7 @@ object SdesDestination {
       "HmrcIlluminate"  -> HmrcIlluminate,
       "DataStoreLegacy" -> DataStoreLegacy,
       "DataStore"       -> DataStore,
+      "DataStoreSCR"    -> DataStoreScr,
       "InfoArchive"     -> InfoArchive,
       "Caseflow"        -> Caseflow,
       "Pega"            -> Pega,
