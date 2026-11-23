@@ -488,7 +488,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    hipAgentDetailsB.getEmptyIfNotFound(
+    hipAgentDetailsB.get(
       dataRetrieve,
       request,
       request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))

@@ -28,6 +28,7 @@ import uk.gov.hmrc.http.client.{ HttpClientV2, RequestBuilder }
 import java.net.URL
 import java.time.LocalDateTime
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 
 class GformConnectorSpec extends Spec {
 
@@ -346,16 +347,22 @@ class GformConnectorSpec extends Spec {
     connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
   }
 
-  behavior of "Data retrieve no-record responses"
+  behavior of "HIP and DES data retrieve error responses"
 
   List(404, 503).foreach { status =>
-    it should s"distinguish no records from technical failure for HIP and DES HTTP $status" in {
+    it should s"treat HTTP $status as a HIP failure and only DES HTTP 404 as no records" in {
       val httpClient = mock(classOf[HttpClientV2])
-      val requestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
-      when(httpClient.get(any[URL])(any[HeaderCarrier])).thenReturn(requestBuilder)
-      when(httpClient.post(any[URL])(any[HeaderCarrier])).thenReturn(requestBuilder)
-      when(requestBuilder.execute[HttpResponse](any[HttpReads[HttpResponse]], any[ExecutionContext]))
-        .thenReturn(Future.successful(HttpResponse(status, "{}")))
+      val hipRequestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
+      val desRequestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
+      when(httpClient.get(any[URL])(any[HeaderCarrier])).thenReturn(hipRequestBuilder)
+      when(httpClient.post(any[URL])(any[HeaderCarrier])).thenReturn(desRequestBuilder)
+      val response = HttpResponse(status, "{}")
+      when(hipRequestBuilder.execute[JsValue](any[HttpReads[JsValue]], any[ExecutionContext]))
+        .thenAnswer(invocation =>
+          Future.fromTry(Try(invocation.getArgument[HttpReads[JsValue]](0).read("GET", "http://localhost", response)))
+        )
+      when(desRequestBuilder.execute[HttpResponse](any[HttpReads[HttpResponse]], any[ExecutionContext]))
+        .thenReturn(Future.successful(response))
       val connector = new GformConnector(httpClient, "http://localhost")
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val dataRetrieve = DataRetrieve(
@@ -376,12 +383,12 @@ class GformConnectorSpec extends Spec {
         manualFallbackIsDesigned = None
       )
       val request = DataRetrieve.Request(Json.obj(), Nil, None, None, None)
-      val expected = if (status == 404) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
+      val expectedDes = if (status == 404) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
 
-      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe expected
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
       connector
         .getDesOrganisation(dataRetrieve.copy(tpe = DataRetrieve.Type("hmrcRosmRegistrationCheck")), request)
-        .futureValue shouldBe expected
+        .futureValue shouldBe expectedDes
     }
   }
 
