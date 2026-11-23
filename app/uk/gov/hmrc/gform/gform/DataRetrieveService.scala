@@ -163,9 +163,8 @@ object DataRetrieveService {
               hasFailed = Some(false)
             )
           )
-        // We need to fail the journey here, otherwise expressions like
-        // ${dataRetrieve.bankDetails.isValid='no'} etc.
-        // will always evaluate to false
+        // When manual fallback is enabled, the template uses hasFailed to show pages
+        // where the user enters the details that could not be retrieved.
         case CannotRetrieveResponse | NotFound if dataRetrieve.manualFallbackIsDesigned.contains(true) =>
           logger.warn(
             s"Selecting manual fallback for data retrieve '${dataRetrieve.id.value}' (${dataRetrieve.tpe.name})"
@@ -186,6 +185,9 @@ object DataRetrieveService {
               hasFailed = Some(true)
             )
           )
+        // We need to fail the journey here, otherwise expressions like
+        // ${dataRetrieve.bankDetails.isValid='no'} etc.
+        // will always evaluate to false
         case CannotRetrieveResponse | NotFound => throw new Exception("Cannot retrieve data")
       }
     }
