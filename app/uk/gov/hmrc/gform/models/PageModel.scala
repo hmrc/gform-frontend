@@ -20,7 +20,7 @@ import cats.data.NonEmptyList
 import play.api.i18n.Messages
 import uk.gov.hmrc.gform.models.ids.{ BaseComponentId, ModelComponentId, MultiValueId }
 import uk.gov.hmrc.gform.recalculation.FreeCalculator
-import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, AtlDescription, BooleanExpr, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsChoice, IsFileUpload, IsGroup, IsMultiFileUpload, IsPostcodeLookup, IsTableComp, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ AllValidIfs, AtlDescription, BooleanExpr, Confirmation, FormComponent, FormComponentId, IncludeIf, Instruction, IsBulkUpload, IsChoice, IsFileUpload, IsGroup, IsMultiFileUpload, IsPostcodeLookup, IsTableComp, Page, PageId, PresentationHint, RedirectCtx, RemoveItemIf, ValidIf }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.KeyDisplayWidth.KeyDisplayWidth
 import uk.gov.hmrc.gform.sharedmodel.{ DataRetrieve, SmartString }
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.LayoutDisplayWidth.LayoutDisplayWidth
@@ -89,6 +89,7 @@ sealed trait PageModel extends Product with Serializable {
     fold(_.page.allFieldsNested.collect {
       case fc @ IsFileUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
       case fc @ IsMultiFileUpload(fu) => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
+      case fc @ IsBulkUpload(fu)      => fc.id -> fu.fileSizeLimit.getOrElse(defaultMaximumFileSize)
     })(_ => Nil)(_ => Nil)
 
   def postcodeLookup: Option[FormComponent] = fold(_.page.allFields.collectFirst { case fc @ IsPostcodeLookup(_) =>

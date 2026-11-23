@@ -16,22 +16,25 @@
 
 package uk.gov.hmrc.gform.upscan
 
+import cats.syntax.all._
 import org.apache.pekko.actor.Scheduler
 import org.slf4j.{ Logger, LoggerFactory }
 import play.api.i18n.{ I18nSupport, Messages }
 import play.api.mvc.{ Action, AnyContent, Flash, MessagesControllerComponents }
 import play.twirl.api.HtmlFormat
 import uk.gov.hmrc.gform.auth.models.{ OperationWithForm, OperationWithoutForm }
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.config.AppConfig
 import uk.gov.hmrc.gform.controllers.{ AuthCacheWithForm, AuthenticatedRequestActions, GformFlashKeys }
 import uk.gov.hmrc.gform.core.Retrying
 import uk.gov.hmrc.gform.eval.smartstring.SmartStringEvaluationSyntax
 import uk.gov.hmrc.gform.gform.FastForwardService
-import uk.gov.hmrc.gform.gformbackend.GformBackEndAlgebra
-import uk.gov.hmrc.gform.models.SectionSelectorType
-import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, FormIdData }
-import uk.gov.hmrc.gform.sharedmodel.formtemplate._
+import uk.gov.hmrc.gform.gformbackend.{ GformBackEndAlgebra, GformConnector }
+import uk.gov.hmrc.gform.models.{ FastForward, SectionSelectorType }
+import uk.gov.hmrc.gform.sharedmodel.form.{ FileId, Form, FormIdData }
+import uk.gov.hmrc.gform.sharedmodel.formtemplate.{ IsFileUpload, _ }
 import uk.gov.hmrc.gform.sharedmodel.{ AccessCode, SmartString }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendController
 
 import scala.concurrent.duration._
@@ -41,6 +44,7 @@ class UpscanController(
   auth: AuthenticatedRequestActions,
   fastForwardService: FastForwardService,
   gformBackEndAlgebra: GformBackEndAlgebra[Future],
+  gformConnector: GformConnector,
   upscanService: UpscanAlgebra[Future],
   i18nSupport: I18nSupport,
   messagesControllerComponents: MessagesControllerComponents,
@@ -51,6 +55,59 @@ class UpscanController(
   import i18nSupport._
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  private def handleBulkUpload(
+    formComponent: FormComponent,
+    bulkUpload: BulkUpload,
+    form: Form,
+    confirmation: UpscanConfirmation
+  )(implicit hc: HeaderCarrier): Future[Form] = {
+    val maybeFilename = confirmation.filename.map(filename => formComponent.id.value + "_" + filename)
+    maybeFilename match {
+      case None =>
+        throw new Exception(
+          s"No filename found for bulk upload upscan confirmation ${confirmation._id.value} with status ${confirmation.status}"
+        )
+      case Some(filename) =>
+        for {
+          spreadSheetData <- gformConnector.downloadBulkUploadData(form.envelopeId, filename)
+        } yield spreadSheetData.data match {
+          case Nil | _ :: Nil =>
+            form.copy(
+              thirdPartyData = form.thirdPartyData
+                .updateBulkUpload(formComponent.id, BulkUploadResult.Error("bulk.upload.global.error.empty.file"))
+            )
+          case headers :: rows =>
+            val templateTitles = bulkUpload.spreadsheet.map(_.title)
+
+            val hasExpectedHeaders: Boolean =
+              templateTitles.zipAll(headers, "", "").map { case (l, r) => l.trim === r.trim }.forall(identity)
+
+            if (hasExpectedHeaders) {
+              form.copy(
+                thirdPartyData = form.thirdPartyData.updateBulkUpload(formComponent.id, BulkUploadResult.Ok(rows))
+              )
+            } else {
+              form.copy(
+                thirdPartyData = form.thirdPartyData.updateBulkUpload(
+                  formComponent.id,
+                  BulkUploadResult.Error("bulk.upload.global.error.header.mismatch")
+                )
+              )
+            }
+        }
+    }
+  }
+
+  private def processSpreadSheet(
+    maybeFormComponent: Option[FormComponent],
+    form: Form,
+    confirmation: UpscanConfirmation
+  )(implicit hc: HeaderCarrier): Future[Option[Form]] =
+    maybeFormComponent match {
+      case Some(fc @ IsBulkUpload(bulkUpload)) => handleBulkUpload(fc, bulkUpload, form, confirmation).map(Some(_))
+      case _                                   => Option.empty[Form].pure[Future]
+    }
 
   def success(
     formTemplateId: FormTemplateId,
@@ -72,26 +129,50 @@ class UpscanController(
             retry(upscanService.retrieveConfirmationOrFail(reference), 2.seconds, 30).flatMap { confirmation =>
               confirmation.status match {
                 case UpscanFileStatus.Ready =>
+                  val maybeFormComponent = formModelOptics.formModelVisibilityOptics.fcLookup.get(formComponentId)
+
                   gformBackEndAlgebra.getForm(formIdData).flatMap { form =>
                     for {
+                      bulkUploadErrors <- processSpreadSheet(maybeFormComponent, form, confirmation)
+
+                      formUpd = bulkUploadErrors.getOrElse(form)
+
                       res <- fastForwardService
                                .redirectStopAt[SectionSelectorType.Normal](
                                  sectionNumber,
-                                 cache.copy(form = form),
+                                 cache.copy(form = formUpd),
                                  maybeAccessCode,
                                  formModelOptics,
                                  SuppressErrors.No
                                )
-                    } yield {
-                      val header = request.messages.messages("file.fileuploaded")
-                      val filename =
-                        confirmation.filename.getOrElse(SmartString.blank.transform(_ => "File", _ => "Ffeil").value())
+                    } yield bulkUploadErrors match {
+                      case None =>
+                        val header = request.messages.messages("file.fileuploaded")
+                        val filename =
+                          confirmation.filename
+                            .getOrElse(SmartString.blank.transform(_ => "File", _ => "Ffeil").value())
 
-                      val content = request.messages.messages("file.upload.success", HtmlFormat.escape(filename))
-                      res.flashing(
-                        "success" -> s"$header|$content"
-                      )
+                        val content = request.messages.messages("file.upload.success", HtmlFormat.escape(filename))
+                        res.flashing(
+                          "success" -> s"$header|$content"
+                        )
+                      case Some(form) =>
+                        if (form.thirdPartyData.bulkUploadFor(formComponentId).hasGlobalError) {
+                          res
+                        } else {
+                          Redirect(
+                            uk.gov.hmrc.gform.bulkupload.routes.BulkUploadController
+                              .renderUploadedData(
+                                formTemplateId,
+                                maybeAccessCode,
+                                formComponentId,
+                                sectionNumber,
+                                List(FastForward.Yes) // Let's reset FastForward history
+                              )
+                          )
+                        }
                     }
+
                   }
                 case UpscanFileStatus.Failed =>
                   val fileId = FileId(formComponentId.value)

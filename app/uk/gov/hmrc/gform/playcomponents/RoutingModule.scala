@@ -92,6 +92,7 @@ class RoutingModule(
     gformModule.imageController,
     gformModule.redirectController,
     gformModule.buttonController,
+    gformModule.bulkUploadController,
     cacheModule.formTemplateCacheController
   )
 

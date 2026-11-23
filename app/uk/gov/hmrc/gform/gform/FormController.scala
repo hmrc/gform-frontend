@@ -24,6 +24,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc._
 import uk.gov.hmrc.gform.auditing.AuditService
 import uk.gov.hmrc.gform.auth.models.OperationWithForm
+import uk.gov.hmrc.gform.bulkupload.BulkUploadResult
 import uk.gov.hmrc.gform.config.{ AppConfig, FrontendAppConfig }
 import uk.gov.hmrc.gform.controllers._
 import uk.gov.hmrc.gform.controllers.helpers.FormDataHelpers.processResponseDataFromBody
@@ -127,7 +128,8 @@ class FormController(
                   fastForward,
                   formModelOptics,
                   upscanInitiate,
-                  AddressRecordLookup.from(cache.form.thirdPartyData)
+                  AddressRecordLookup.from(cache.form.thirdPartyData),
+                  cache.form.thirdPartyData.bulkUploadLookup.getOrElse(Map.empty[FormComponentId, BulkUploadResult])
                 )
               )
             }
