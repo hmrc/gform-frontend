@@ -123,7 +123,10 @@ object MarkDownUtil {
         .mkString("\n")
     )
 
-  def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = markDownParser(ls.value)
+  def markDownParser(ls: LocalisedString)(implicit l: LangADT): Html = {
+    val markDownText = removeSpacesForStrong(ls.value)
+    markDownParser(markDownText)
+  }
 
   def markDownParser(ls: SmartString)(implicit sse: SmartStringEvaluator): Html = {
     val markDownText = removeSpacesForStrong(ls.valueForMarkdown())
