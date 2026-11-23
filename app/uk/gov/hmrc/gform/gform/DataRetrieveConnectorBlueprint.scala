@@ -76,14 +76,6 @@ class DataRetrieveConnectorBlueprint(
     dataRetrieve: DataRetrieve,
     request: DataRetrieve.Request,
     header: Seq[(String, String)] = Seq.empty
-  )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    getResponse(dataRetrieve, request, header, emptyIfNotFound = true)
-
-  private def getResponse(
-    dataRetrieve: DataRetrieve,
-    request: DataRetrieve.Request,
-    header: Seq[(String, String)],
-    emptyIfNotFound: Boolean
   )(implicit
     ex: ExecutionContext,
     hc: HeaderCarrier
@@ -114,7 +106,7 @@ class DataRetrieveConnectorBlueprint(
                   ServiceResponse(valid)
                 }
               )
-          case (_, NOT_FOUND) if emptyIfNotFound => dataRetrieve.emptyValidResponse()
+          case (_, NOT_FOUND) => dataRetrieve.emptyValidResponse()
           case (_, other) =>
             logger.error(s"Unexpected status $other received when calling $identifier")
             CannotRetrieveResponse
