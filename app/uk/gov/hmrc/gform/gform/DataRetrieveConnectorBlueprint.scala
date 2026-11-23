@@ -21,6 +21,7 @@ import play.api.http.Status.{ NOT_FOUND, OK }
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -179,7 +180,10 @@ class DataRetrieveConnectorBlueprint(
                   ServiceResponse(valid)
                 }
               )
-          case (_, NOT_FOUND) if emptyIfNotFound => dataRetrieve.emptyValidResponse()
+          case (_, NOT_FOUND)
+              if emptyIfNotFound && Try((httpResponse.json \ "det").asOpt[String]).toOption.flatten
+                .contains("NotFound") =>
+            dataRetrieve.emptyValidResponse()
           case (_, other) =>
             logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse

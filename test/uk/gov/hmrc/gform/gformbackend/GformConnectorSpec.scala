@@ -349,14 +349,20 @@ class GformConnectorSpec extends Spec {
 
   behavior of "HIP and DES data retrieve error responses"
 
-  List(404, 503).foreach { status =>
-    it should s"treat HTTP $status as a HIP failure and only DES HTTP 404 as no records" in {
+  val notFoundBody = """{"det":"NotFound"}"""
+  List(
+    (404, notFoundBody, "a no-record marker", true),
+    (404, """{"det":"CannotRetrieveResponse"}""", "a different marker", false),
+    (404, "<html>Not found</html>", "a non-JSON body", false),
+    (503, notFoundBody, "a no-record marker", false)
+  ).foreach { case (status, body, description, noDesRecords) =>
+    it should s"classify HTTP $status with $description for HIP and DES" in {
       val httpClient = mock(classOf[HttpClientV2])
       val hipRequestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
       val desRequestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
       when(httpClient.get(any[URL])(any[HeaderCarrier])).thenReturn(hipRequestBuilder)
       when(httpClient.post(any[URL])(any[HeaderCarrier])).thenReturn(desRequestBuilder)
-      val response = HttpResponse(status, "{}")
+      val response = HttpResponse(status, body)
       when(hipRequestBuilder.execute[JsValue](any[HttpReads[JsValue]], any[ExecutionContext]))
         .thenAnswer(invocation =>
           Future.fromTry(Try(invocation.getArgument[HttpReads[JsValue]](0).read("GET", "http://localhost", response)))
@@ -383,7 +389,7 @@ class GformConnectorSpec extends Spec {
         manualFallbackIsDesigned = None
       )
       val request = DataRetrieve.Request(Json.obj(), Nil, None, None, None)
-      val expectedDes = if (status == 404) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
+      val expectedDes = if (noDesRecords) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
 
       connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
       connector
