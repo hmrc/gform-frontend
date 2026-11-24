@@ -21,6 +21,7 @@ import play.api.http.Status.{ NOT_FOUND, OK }
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.exceptions.DataRetrieveResponseValidationException
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.http.HttpReads.Implicits.{ readFromJson, readRaw }
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -130,6 +131,24 @@ class DataRetrieveConnectorBlueprint(
     implicit
     ex: ExecutionContext,
     hc: HeaderCarrier
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    postResponse(dataRetrieve, request, header, emptyIfNotFound = false)
+
+  def postEmptyIfNotFound(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request,
+    header: Seq[(String, String)] = Seq.empty
+  )(implicit ex: ExecutionContext, hc: HeaderCarrier): Future[ServiceCallResponse[DataRetrieve.Response]] =
+    postResponse(dataRetrieve, request, header, emptyIfNotFound = true)
+
+  private def postResponse(
+    dataRetrieve: DataRetrieve,
+    request: DataRetrieve.Request,
+    header: Seq[(String, String)],
+    emptyIfNotFound: Boolean
+  )(implicit
+    ex: ExecutionContext,
+    hc: HeaderCarrier
   ): Future[ServiceCallResponse[DataRetrieve.Response]] = {
 
     val url = request.fillPlaceholders(s"$baseUrl${dataRetrieve.urlFrontend.urlPath}")
@@ -161,6 +180,10 @@ class DataRetrieveConnectorBlueprint(
                   ServiceResponse(valid)
                 }
               )
+          case (_, NOT_FOUND)
+              if emptyIfNotFound && Try((httpResponse.json \ "det").asOpt[String]).toOption.flatten
+                .contains("NotFound") =>
+            dataRetrieve.emptyValidResponse()
           case (_, other) =>
             logger.error(s"Problem when calling $identifier. Http status: $other, body: ${httpResponse.body}")
             CannotRetrieveResponse
@@ -175,6 +198,7 @@ class DataRetrieveConnectorBlueprint(
           CannotRetrieveResponse
       }
   }
+
 }
 
 case class ExceptionalResponse(statusMatch: Int, responseMatch: String, response: String)

@@ -488,7 +488,7 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     hc: HeaderCarrier,
     ec: ExecutionContext
   ): Future[ServiceCallResponse[DataRetrieve.Response]] =
-    organisationB.post(dataRetrieve, request)
+    organisationB.postEmptyIfNotFound(dataRetrieve, request)
 
   private val hipAgentDetailsB =
     new DataRetrieveConnectorBlueprint(httpClient, baseUrl, "hip-agent-details")

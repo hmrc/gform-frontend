@@ -340,7 +340,8 @@ trait DependencyGraphFixture {
           Json.obj(),
           failureCount,
           failureMaxAttempts,
-          failureCountResetTime
+          failureCountResetTime,
+          hasFailed = None
         )
     })
 
@@ -355,7 +356,8 @@ trait DependencyGraphFixture {
           Json.obj(),
           None,
           None,
-          None
+          None,
+          hasFailed = None
         )
     })
 

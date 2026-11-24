@@ -16,13 +16,19 @@
 
 package uk.gov.hmrc.gform.gformbackend
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{ RETURNS_SELF, mock, when }
 import play.api.libs.json.{ JsValue, Json }
 import uk.gov.hmrc.gform.Spec
 import uk.gov.hmrc.gform.sharedmodel._
 import uk.gov.hmrc.gform.wshttp.StubbedHttpClientV2
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.client.{ HttpClientV2, RequestBuilder }
 
+import java.net.URL
 import java.time.LocalDateTime
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.Try
 
 class GformConnectorSpec extends Spec {
 
@@ -239,7 +245,8 @@ class GformConnectorSpec extends Spec {
           urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(
@@ -286,7 +293,8 @@ class GformConnectorSpec extends Spec {
           urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(
@@ -324,7 +332,8 @@ class GformConnectorSpec extends Spec {
           urlPath = "/etmp/RESTAdapter/generic/agent/subscription/{{agentReferenceNumber}}",
           destination = UrlDestination.HIP
         )
-      )
+      ),
+      manualFallbackIsDesigned = None
     )
 
     val request = DataRetrieve.Request(
@@ -336,6 +345,57 @@ class GformConnectorSpec extends Spec {
     )
 
     connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+  }
+
+  behavior of "HIP and DES data retrieve error responses"
+
+  val notFoundBody = """{"det":"NotFound"}"""
+  List(
+    (404, notFoundBody, "a no-record marker", true),
+    (404, """{"det":"CannotRetrieveResponse"}""", "a different marker", false),
+    (404, "<html>Not found</html>", "a non-JSON body", false),
+    (503, notFoundBody, "a no-record marker", false)
+  ).foreach { case (status, body, description, noDesRecords) =>
+    it should s"classify HTTP $status with $description for HIP and DES" in {
+      val httpClient = mock(classOf[HttpClientV2])
+      val hipRequestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
+      val desRequestBuilder = mock(classOf[RequestBuilder], RETURNS_SELF)
+      when(httpClient.get(any[URL])(any[HeaderCarrier])).thenReturn(hipRequestBuilder)
+      when(httpClient.post(any[URL])(any[HeaderCarrier])).thenReturn(desRequestBuilder)
+      val response = HttpResponse(status, body)
+      when(hipRequestBuilder.execute[JsValue](any[HttpReads[JsValue]], any[ExecutionContext]))
+        .thenAnswer(invocation =>
+          Future.fromTry(Try(invocation.getArgument[HttpReads[JsValue]](0).read("GET", "http://localhost", response)))
+        )
+      when(desRequestBuilder.execute[HttpResponse](any[HttpReads[HttpResponse]], any[ExecutionContext]))
+        .thenReturn(Future.successful(response))
+      val connector = new GformConnector(httpClient, "http://localhost")
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val dataRetrieve = DataRetrieve(
+        tpe = DataRetrieve.Type("agentDetails"),
+        id = DataRetrieveId("agencyInfo"),
+        attributes = Attr.FromObject(
+          List(AttributeInstruction(DataRetrieve.Attribute("name"), ConstructAttribute.AsIs(Fetch(List("name")))))
+        ),
+        attrTypeMapping = Map.empty,
+        params = Nil,
+        `if` = None,
+        maxFailedAttempts = None,
+        failureCountResetMinutes = None,
+        callOnNoChange = false,
+        populateATL = None,
+        urlFrontend = UrlDescriptor("/retrieve", UrlDestination.GForm),
+        urlBackend = None,
+        manualFallbackIsDesigned = None
+      )
+      val request = DataRetrieve.Request(Json.obj(), Nil, None, None, None)
+      val expectedDes = if (noDesRecords) dataRetrieve.emptyValidResponse() else CannotRetrieveResponse
+
+      connector.getHipAgentDetails(dataRetrieve, request).futureValue shouldBe CannotRetrieveResponse
+      connector
+        .getDesOrganisation(dataRetrieve.copy(tpe = DataRetrieve.Type("hmrcRosmRegistrationCheck")), request)
+        .futureValue shouldBe expectedDes
+    }
   }
 
   trait Fixture extends ExampleData {
