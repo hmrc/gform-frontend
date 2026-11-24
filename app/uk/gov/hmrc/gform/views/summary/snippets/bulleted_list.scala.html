@@ -16,7 +16,7 @@
 
 @(items: List[Html])
 <ul class="govuk-list govuk-list--bullet">
- @items.map { item =>
+ @items.filter(!_.toString().isBlank).map { item =>
   <li>@item</li>
  }
 </ul>

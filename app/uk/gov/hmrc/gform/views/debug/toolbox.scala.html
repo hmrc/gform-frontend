@@ -27,7 +27,8 @@
   accessCode: Option[AccessCode],
   frontendAppConfig: FrontendAppConfig,
   tabs: Html,
-  backLink: Option[BackLink] = None
+  backLink: Option[BackLink] = None,
+  maybeBanner: Option[Html] = None
 )(implicit
   request: Request[_],
   messages: Messages,
@@ -36,6 +37,9 @@
 
 <head>
     <style>
+        .govuk-notification-banner__content > * {
+            max-width: 100%!important;
+        }
         .govuk-main-wrapper {
             padding-top: 20px!important;
         }
@@ -106,6 +110,7 @@
   backLink = backLink,
   accessCode = accessCode
 ) {
+    @maybeBanner.getOrElse(Html(""))
     @tabs
     @formWithCSRF(action = uk.gov.hmrc.gform.gform.routes.NewFormController.decision(formTemplate._id), args = 'id -> "return-to-form") {
         <input type="hidden" name="decision" value="continue"/>
