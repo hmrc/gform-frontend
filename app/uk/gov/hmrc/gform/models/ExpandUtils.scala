@@ -65,7 +65,9 @@ object ExpandUtils {
       .updateInterpolations(
         {
           case ctx @ DataRetrieveCtx(_, _) => IndexOfDataRetrieveCtx(ctx, Constant(index.toString))
-          case otherwise                   => otherwise
+          case DateCtx(DataRetrieveDateCtx(drId, attr)) =>
+            IndexOfDataRetrieveCtx(DataRetrieveCtx(drId, attr), Constant(index.toString))
+          case otherwise => otherwise
         },
         boolExpr => BooleanExprUpdater(boolExpr, index, List.empty[FormComponentId], List.empty[DataRetrieveId])
       )

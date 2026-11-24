@@ -67,6 +67,7 @@ object DataRetrieveService {
         case DataRetrieve.Type("hmrcRosmRegistrationCheck")  => gformConnector.map(_.getDesOrganisation)
         case DataRetrieve.Type("agentDetails")               => gformConnector.map(_.getHipAgentDetails)
         case DataRetrieve.Type("niRefundClaim")              => gformConnector.map(_.getNiClaimValidation)
+        case DataRetrieve.Type("ftaVerifyPodStatus")         => gformConnector.map(_.ftaVerifyPodStatus)
         case DataRetrieve.Type("hmrcTaxRates")               => fileSystemConnector.map(_.getHmrcTaxRate)
         case DataRetrieve.Type("delegatedAgentAuthVat")      => delegatedAgentAuthConnector.map(_.mtdVatAuth)
         case DataRetrieve.Type("delegatedAgentAuthPaye")     => delegatedAgentAuthConnector.map(_.payeAuth)
