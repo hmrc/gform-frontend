@@ -73,6 +73,7 @@ object DataRetrieveService {
         case DataRetrieve.Type("delegatedAgentAuthPaye")     => delegatedAgentAuthConnector.map(_.payeAuth)
         case DataRetrieve.Type("caseflowCaseDetails")        => gformConnector.map(_.getCaseflowCaseDetails)
         case DataRetrieve.Type("ftaManageEmails")            => gformConnector.map(_.ftaManageEmails)
+        case DataRetrieve.Type("ftaPodAuthorisationDetails") => gformConnector.map(_.ftaPodAuthorisationDetails)
         case _                                               => Option.empty
       }
 

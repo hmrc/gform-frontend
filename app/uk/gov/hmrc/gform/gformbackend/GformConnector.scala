@@ -608,6 +608,49 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
     request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
   )
 
+  // TODO: GFORMS-5108 - PDS failure codes for FTAPOD2 business failures (400) have not been decided yet, so known
+  //  validation messages are mapped to fixed businessFailure values for now. Further implementation is expected
+  //  based on whatever the failure codes are intended to convey once those details are known.
+  private val ftaPodAuthorisationDetailsB =
+    new DataRetrieveConnectorBlueprint(
+      httpClient,
+      baseUrl,
+      "fta pod authorisation details",
+      Some(
+        List(
+          ExceptionalResponse(
+            400,
+            "Invalid pod authorisation pattern",
+            """[{"businessFailure":"INVALID_POD_REFERENCE"}]"""
+          ),
+          ExceptionalResponse(
+            400,
+            "No matching authorisation found",
+            """[{"businessFailure":"NO_MATCHING_AUTHORISATION"}]"""
+          ),
+          ExceptionalResponse(
+            400,
+            "Decision not current",
+            """[{"businessFailure":"DECISION_NOT_CURRENT"}]"""
+          ),
+          ExceptionalResponse(
+            400,
+            "businessFailure",
+            """[{"businessFailure":"UNKNOWN_BUSINESS_FAILURE"}]"""
+          )
+        )
+      )
+    )
+
+  def ftaPodAuthorisationDetails(dataRetrieve: DataRetrieve, request: DataRetrieve.Request)(implicit
+    hc: HeaderCarrier,
+    ec: ExecutionContext
+  ): Future[ServiceCallResponse[DataRetrieve.Response]] = ftaPodAuthorisationDetailsB.getEmptyIfNotFound(
+    dataRetrieve,
+    request,
+    request.correlationId.fold(Seq("correlationId" -> UUID.randomUUID().toString))(cId => Seq("correlationId" -> cId))
+  )
+
   /** **** Tax Period *****
     */
   def getAllTaxPeriods(
