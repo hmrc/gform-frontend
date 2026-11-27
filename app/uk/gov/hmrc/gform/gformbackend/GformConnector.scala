@@ -468,6 +468,14 @@ class GformConnector(httpClient: HttpClientV2, baseUrl: String) {
   )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[FormTemplate] =
     httpClient.get(url"$baseUrl/formtemplates/${formTemplateId.value}/latest").execute[FormTemplate]
 
+  def createE2eFormTemplate(
+    formTemplateId: FormTemplateId
+  )(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[HttpResponse] =
+    httpClient
+      .post(url"$baseUrl/formtemplates/${formTemplateId.value}/create-e2e")
+      .setHeader("Content-Type" -> ContentType.`application/json`.value)
+      .execute[HttpResponse]
+
   /** ****file-upload******
     */
   def deleteFile(formId: FormId, fileId: FileId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =

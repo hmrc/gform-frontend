@@ -61,8 +61,8 @@ import uk.gov.hmrc.gform.views.html.hardcoded.pages._
 import uk.gov.hmrc.gform.views.html.summary.snippets.bulleted_list
 import uk.gov.hmrc.gform.BuildInfo
 import uk.gov.hmrc.gform.sharedmodel.formtemplate.destinations.Destination.{ DataStore, HmrcDms, InfoArchive }
-import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, SelectItem, TabItem, TabPanel, Tabs }
-import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukAccordion, GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukSelect, GovukTable, GovukTabs }
+import uk.gov.hmrc.govukfrontend.views.Aliases.{ InsetText, Label, NotificationBanner, SelectItem, TabItem, TabPanel, Tabs }
+import uk.gov.hmrc.govukfrontend.views.html.components.{ GovukAccordion, GovukErrorMessage, GovukHint, GovukInsetText, GovukLabel, GovukNotificationBanner, GovukSelect, GovukTable, GovukTabs }
 import uk.gov.hmrc.govukfrontend.views.html.helpers.{ GovukFormGroup, GovukHintAndErrorMessage }
 import uk.gov.hmrc.govukfrontend.views.viewmodels.accordion.Accordion
 import uk.gov.hmrc.govukfrontend.views.viewmodels.backlink.BackLink
@@ -262,6 +262,15 @@ class TestOnlyController(
       )
     }
 
+    val createE2eLink =
+      if (formTemplateId.value.endsWith("-e2e"))
+        HtmlFormat.empty
+      else
+        uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
+          "Create E2E template",
+          uk.gov.hmrc.gform.testonly.routes.TestOnlyController.createE2e(formTemplateId, accessCode)
+        )
+
     val toggleFormBuilder = uk.gov.hmrc.gform.views.html.hardcoded.pages.link(
       if (isFormBuilderEnabled) "Disable form builder" else "Enable form builder",
       uk.gov.hmrc.gform.testonly.routes.TestOnlyController.toggleFormBuilder(formTemplateId, accessCode)
@@ -280,6 +289,7 @@ class TestOnlyController(
         saveCurrentFormLink,
         restoreFormLink,
         toggleSpecimen,
+        createE2eLink,
         toggleFormBuilder,
         testSetupData
       )
@@ -1033,6 +1043,19 @@ class TestOnlyController(
       val isFormBuilderEnabled = request.cookies.get(CookieNames.formBuilderCookieName).isDefined
       val isSpecimen = cache.formTemplate.isSpecimen
 
+      val maybeBanner = request.flash.get("successNotification").fold(Option.empty[Html]) { notification =>
+        Some(
+          new GovukNotificationBanner()(
+            NotificationBanner(
+              title = Text("Success"),
+              content = HtmlContent(notification),
+              bannerType = Some("success"),
+              role = Some("alert")
+            )
+          )
+        )
+      }
+
       gformConnector.getDataRetrieveDefinitions().map { dataRetrieveDefinitions =>
         val govukTabs = new GovukTabs()(
           Tabs(
@@ -1088,7 +1111,17 @@ class TestOnlyController(
         )
 
         val backLink = BackLink(content = content.Text("Return to form"))
-        Ok(toolbox(cache.formTemplate, cache.form.envelopeId, accessCode, frontendAppConfig, govukTabs, Some(backLink)))
+        Ok(
+          toolbox(
+            cache.formTemplate,
+            cache.form.envelopeId,
+            accessCode,
+            frontendAppConfig,
+            govukTabs,
+            Some(backLink),
+            maybeBanner
+          )
+        )
       }
   }
 
@@ -1377,6 +1410,28 @@ class TestOnlyController(
       Future.successful(
         Ok(save_form_page(cache.formTemplate, maybeAccessCode, frontendAppConfig, cache.form._id.value))
       )
+  }
+
+  def createE2e(
+    formTemplateId: FormTemplateId,
+    maybeAccessCode: Option[AccessCode]
+  ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
+    implicit request => _ => _ => _ => _ =>
+      gformConnector.createE2eFormTemplate(formTemplateId).map { response =>
+        if (response.status =!= 204) {
+          BadRequest(s"${response.body}").as("application/json")
+        } else
+          Redirect(uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handleToolbox(formTemplateId, maybeAccessCode))
+            .flashing(
+              "successNotification" ->
+                s"""End to end testing template created successfully;<br>
+                   |<ul>
+                   |  <li>
+                   |    <code>${formTemplateId.value}-e2e</code>
+                   |  </li>
+                   |</ul>""".stripMargin
+            )
+      }
   }
 
   def snapshotLoadData(formTemplateId: FormTemplateId, snapshotId: SnapshotId, maybeAccessCode: Option[AccessCode]) =
