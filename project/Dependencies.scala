@@ -6,7 +6,7 @@ object Dependencies {
   val jacksonVersion = "2.18.3"
   val jacksonDatabindVersion = "2.18.3"
   val circeVersion = "0.15.0-M1"
-  val bootstrapVersion = "10.8.0"
+  val bootstrapVersion = "10.9.0"
   val hmrcMongoVersion = "2.14.0"
   val luceneVersion = "10.6.0"
 
@@ -14,7 +14,7 @@ object Dependencies {
 
   val compile = Seq(
     "uk.gov.hmrc"                  %% "bootstrap-frontend-play-30" % bootstrapVersion,
-    "uk.gov.hmrc"                  %% "play-frontend-hmrc-play-30" % "13.16.0",
+    "uk.gov.hmrc"                  %% "play-frontend-hmrc-play-30" % "13.17.0",
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-30"         % hmrcMongoVersion,
     "uk.gov.hmrc"                  %% "play-partials-play-30"      % "10.2.0",
     "uk.gov.hmrc"                  %% "domain-play-30"             % "11.0.0",

@@ -1418,7 +1418,7 @@ class TestOnlyController(
   ) = auth.async[SectionSelectorType.WithAcknowledgement](formTemplateId, maybeAccessCode) {
     implicit request => _ => _ => _ => _ =>
       gformConnector.createE2eFormTemplate(formTemplateId).map { response =>
-        if (response.status =!= 200) {
+        if (response.status =!= 204) {
           BadRequest(s"${response.body}").as("application/json")
         } else
           Redirect(uk.gov.hmrc.gform.testonly.routes.TestOnlyController.handleToolbox(formTemplateId, maybeAccessCode))
